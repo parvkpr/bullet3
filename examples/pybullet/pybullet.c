@@ -1873,6 +1873,140 @@ static PyObject* pybullet_loadSDF(PyObject* self, PyObject* args, PyObject* keyw
 }
 
 #ifndef SKIP_SOFT_BODY_MULTI_BODY_DYNAMICS_WORLD
+// Load cloth from an obj file
+static PyObject* pybullet_loadCloth(PyObject* self, PyObject* args, PyObject* keywds)
+{
+	int physicsClientId = 0;
+	int flags = 0;
+
+	static char* kwlist[] = {"fileName", "scale", "mass", "position", "orientation", "bodyAnchorId", "anchors", "collisionMargin", "physicsClientId", NULL};
+
+	int bodyUniqueId = -1;
+	const char* fileName = "";
+	double scale = -1;
+	double mass = -1;
+	double positionArray[3] = {0, 0, 0};
+	double orientationArray[4] = {0, 0, 0, 1};
+	PyObject* positionObj = 0;
+	PyObject* orientationObj = 0;
+	int bodyAnchorId = 0;
+	PyObject* anchorsObj = 0;
+	int anchorsArray[25];
+	double collisionMargin = -1;
+
+	b3PhysicsClientHandle sm = 0;
+
+	if (!PyArg_ParseTupleAndKeywords(args, keywds, "s|ddOOiOdi", kwlist, &fileName, &scale, &mass, &positionObj, &orientationObj, &bodyAnchorId, &anchorsObj, &collisionMargin, &physicsClientId))
+	{
+		return NULL;
+	}
+
+	sm = getPhysicsClient(physicsClientId);
+	if (sm == 0)
+	{
+		PyErr_SetString(SpamError, "Not connected to physics server.");
+		return NULL;
+	}
+
+	if (positionObj)
+	{
+		int i = 0;
+		PyObject* positionSeq = PySequence_Fast(positionObj, "expected a position sequence");
+		int positionSize = PySequence_Size(positionObj);
+		for (i = 0; i < positionSize; i++)
+		{
+			positionArray[i] = pybullet_internalGetFloatFromSequence(positionSeq, i);
+		}
+	}
+
+	if (orientationObj)
+	{
+		int i = 0;
+		PyObject* orientationSeq = PySequence_Fast(orientationObj, "expected a position sequence");
+		int orientationSize = PySequence_Size(orientationObj);
+		for (i = 0; i < orientationSize; i++)
+		{
+			orientationArray[i] = pybullet_internalGetFloatFromSequence(orientationSeq, i);
+		}
+	}
+
+	if (anchorsObj)
+	{
+		int i = 0;
+		PyObject* anchorsSeq = PySequence_Fast(anchorsObj, "expected a position sequence");
+		int anchorsSize = PySequence_Size(anchorsObj);
+		for (i = 0; i < anchorsSize; i++)
+		{
+			anchorsArray[i] = pybullet_internalGetIntFromSequence(anchorsSeq, i);
+		}
+        anchorsArray[i] = -1;
+	}
+
+	if (strlen(fileName))
+	{
+		b3SharedMemoryStatusHandle statusHandle;
+		int statusType;
+		b3SharedMemoryCommandHandle command = b3LoadClothCommandInit(sm, fileName, scale, mass, positionArray, orientationArray, bodyAnchorId, anchorsArray, collisionMargin);
+
+		statusHandle = b3SubmitClientCommandAndWaitStatus(sm, command);
+		statusType = b3GetStatusType(statusHandle);
+		if (statusType != CMD_LOAD_SOFT_BODY_COMPLETED)
+		{
+			PyErr_SetString(SpamError, "Cannot load cloth.");
+			return NULL;
+		}
+		bodyUniqueId = b3GetStatusBodyIndex(statusHandle);
+	}
+	return PyLong_FromLong(bodyUniqueId);
+}
+
+// Update cloth parameters
+static PyObject* pybullet_clothParams(PyObject* self, PyObject* args, PyObject* keywds)
+{
+	int physicsClientId = 0;
+	int flags = 0;
+
+	static char* kwlist[] = {"bodyId",  "kVCF",  "kDP",  "kDG",  "kLF",  "kPR",  "kVC",  "kDF",  "kMT",  "kCHR",  "kKHR",  "kSHR",  "kAHR",  "viterations",  "piterations",  "diterations", "physicsClientId", NULL};
+
+    int bodyId = -1;
+    double kVCF = 1;
+    double kDP = 0;
+    double kDG = 0;
+    double kLF = 0;
+    double kPR = 0;
+    double kVC = 0;
+    double kDF = 0.2;
+    double kMT = 0;
+    double kCHR = 1.0;
+    double kKHR = 0.1;
+    double kSHR = 1.0;
+    double kAHR = 0.7;
+    int viterations = 0;
+    int piterations = 1;
+    int diterations = 0;
+
+	b3PhysicsClientHandle sm = 0;
+
+	if (!PyArg_ParseTupleAndKeywords(args, keywds, "i|ddddddddddddiii", kwlist, &bodyId, &kVCF, &kDP, &kDG, &kLF, &kPR, &kVC, &kDF, &kMT, &kCHR, &kKHR, &kSHR, &kAHR, &viterations, &piterations, &diterations, &physicsClientId))
+	{
+		return NULL;
+	}
+
+	sm = getPhysicsClient(physicsClientId);
+	if (sm == 0)
+	{
+		PyErr_SetString(SpamError, "Not connected to physics server.");
+		return NULL;
+	}
+
+    b3SharedMemoryStatusHandle statusHandle;
+    int statusType;
+    b3SharedMemoryCommandHandle command = b3ClothParamsCommandInit(sm, bodyId, kVCF, kDP, kDG, kLF, kPR, kVC, kDF, kMT, kCHR, kKHR, kSHR, kAHR, viterations, piterations, diterations);
+
+    statusHandle = b3SubmitClientCommandAndWaitStatus(sm, command);
+	return Py_None;
+}
+
 // Load a softbody from an obj file
 static PyObject* pybullet_loadSoftBody(PyObject* self, PyObject* args, PyObject* keywds)
 {
@@ -10314,6 +10448,10 @@ static PyMethodDef SpamMethods[] = {
 	{"loadSDF", (PyCFunction)pybullet_loadSDF, METH_VARARGS | METH_KEYWORDS,
 	 "Load multibodies from an SDF file."},
 #ifndef SKIP_SOFT_BODY_MULTI_BODY_DYNAMICS_WORLD
+	{"loadCloth", (PyCFunction)pybullet_loadCloth, METH_VARARGS | METH_KEYWORDS,
+	 "Load cloth from an obj file."},
+	{"clothParams", (PyCFunction)pybullet_clothParams, METH_VARARGS | METH_KEYWORDS,
+	 "Update cloth parameters."},
 	{"loadSoftBody", (PyCFunction)pybullet_loadSoftBody, METH_VARARGS | METH_KEYWORDS,
 	 "Load a softbody from an obj file."},
 #endif

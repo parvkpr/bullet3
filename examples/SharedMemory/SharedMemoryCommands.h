@@ -500,6 +500,38 @@ enum EnumSimParamInternalSimFlags
 ///Controlling a robot involves sending the desired state to its joint motor controllers.
 ///The control mode determines the state variables used for motor control.
 
+struct LoadClothArgs
+{
+	char m_fileName[MAX_FILENAME_LENGTH];
+	double m_scale;
+	double m_mass;
+	double m_position[3];
+	double m_orientation[4];
+    int m_bodyAnchorId;
+    int m_anchors[25];
+	double m_collisionMargin;
+};
+
+struct ClothParamsArgs
+{
+    int m_bodyId;
+    double m_kVCF;       // Velocities correction factor (Baumgarte)
+    double m_kDP;        // Damping coefficient [0,1]
+    double m_kDG;        // Drag coefficient [0,+inf]
+    double m_kLF;        // Lift coefficient [0,+inf]
+    double m_kPR;        // Pressure coefficient [-inf,+inf]
+    double m_kVC;        // Volume conversation coefficient [0,+inf]
+    double m_kDF;        // Dynamic friction coefficient [0,1]
+    double m_kMT;        // Pose matching coefficient [0,1]
+    double m_kCHR;       // Rigid contacts hardness [0,1]
+    double m_kKHR;       // Kinetic contacts hardness [0,1]
+    double m_kSHR;       // Soft contacts hardness [0,1]
+    double m_kAHR;       // Anchors hardness [0,1]
+    int m_viterations;   // Velocities solver iterations
+    int m_piterations;   // Positions solver iterations
+    int m_diterations;   // Drift solver iterations
+};
+
 struct LoadSoftBodyArgs
 {
 	char m_fileName[MAX_FILENAME_LENGTH];
@@ -1088,6 +1120,8 @@ struct SharedMemoryCommand
 		struct CalculateInverseKinematicsArgs m_calculateInverseKinematicsArguments;
 		struct UserDebugDrawArgs m_userDebugDrawArgs;
 		struct RequestRaycastIntersections m_requestRaycastIntersections;
+		struct LoadClothArgs m_loadClothArguments;
+		struct ClothParamsArgs m_clothParamsArguments;
 		struct LoadSoftBodyArgs m_loadSoftBodyArguments;
 		struct VRCameraState m_vrCameraStateArguments;
 		struct StateLoggingRequest m_stateLoggingArguments;
