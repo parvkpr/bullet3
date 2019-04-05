@@ -515,6 +515,9 @@ struct LoadClothArgs
 struct ClothParamsArgs
 {
     int m_bodyId;
+    double m_kLST;  // Material: Linear stiffness coefficient [0,1]
+    double m_kAST;  // Material: Area/Angular stiffness coefficient [0,1]
+    double m_kVST;  // Material: Volume stiffness coefficient [0,1]
     double m_kVCF;       // Velocities correction factor (Baumgarte)
     double m_kDP;        // Damping coefficient [0,1]
     double m_kDG;        // Drag coefficient [0,+inf]
@@ -530,6 +533,23 @@ struct ClothParamsArgs
     int m_viterations;   // Velocities solver iterations
     int m_piterations;   // Positions solver iterations
     int m_diterations;   // Drift solver iterations
+};
+
+struct LoadClothPatchArgs
+{
+    int m_numX;
+    int m_numY;
+	double m_corner00[3];
+	double m_corner10[3];
+	double m_corner01[3];
+	double m_corner11[3];
+	double m_scale;
+	double m_mass;
+	double m_position[3];
+	double m_orientation[4];
+    int m_bodyAnchorIds[25];
+    int m_anchors[25];
+	double m_collisionMargin;
 };
 
 struct LoadSoftBodyArgs
@@ -1122,6 +1142,7 @@ struct SharedMemoryCommand
 		struct RequestRaycastIntersections m_requestRaycastIntersections;
 		struct LoadClothArgs m_loadClothArguments;
 		struct ClothParamsArgs m_clothParamsArguments;
+		struct LoadClothPatchArgs m_loadClothPatchArguments;
 		struct LoadSoftBodyArgs m_loadSoftBodyArguments;
 		struct VRCameraState m_vrCameraStateArguments;
 		struct StateLoggingRequest m_stateLoggingArguments;

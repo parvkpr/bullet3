@@ -1883,8 +1883,8 @@ static PyObject* pybullet_loadCloth(PyObject* self, PyObject* args, PyObject* ke
 
 	int bodyUniqueId = -1;
 	const char* fileName = "";
-	double scale = -1;
-	double mass = -1;
+	double scale = 1;
+	double mass = 1;
 	double positionArray[3] = {0, 0, 0};
 	double orientationArray[4] = {0, 0, 0, 1};
 	PyObject* positionObj = 0;
@@ -1892,7 +1892,7 @@ static PyObject* pybullet_loadCloth(PyObject* self, PyObject* args, PyObject* ke
 	int bodyAnchorId = 0;
 	PyObject* anchorsObj = 0;
 	int anchorsArray[25];
-	double collisionMargin = -1;
+	double collisionMargin = 0.01;
 
 	b3PhysicsClientHandle sm = 0;
 
@@ -1966,9 +1966,12 @@ static PyObject* pybullet_clothParams(PyObject* self, PyObject* args, PyObject* 
 	int physicsClientId = 0;
 	int flags = 0;
 
-	static char* kwlist[] = {"bodyId",  "kVCF",  "kDP",  "kDG",  "kLF",  "kPR",  "kVC",  "kDF",  "kMT",  "kCHR",  "kKHR",  "kSHR",  "kAHR",  "viterations",  "piterations",  "diterations", "physicsClientId", NULL};
+	static char* kwlist[] = {"bodyId",  "kLST", "kAST", "kVST", "kVCF",  "kDP",  "kDG",  "kLF",  "kPR",  "kVC",  "kDF",  "kMT",  "kCHR",  "kKHR",  "kSHR",  "kAHR",  "viterations",  "piterations",  "diterations", "physicsClientId", NULL};
 
     int bodyId = -1;
+    double kLST = 1;
+    double kAST = 1;
+    double kVST = 1;
     double kVCF = 1;
     double kDP = 0;
     double kDG = 0;
@@ -1987,7 +1990,7 @@ static PyObject* pybullet_clothParams(PyObject* self, PyObject* args, PyObject* 
 
 	b3PhysicsClientHandle sm = 0;
 
-	if (!PyArg_ParseTupleAndKeywords(args, keywds, "i|ddddddddddddiii", kwlist, &bodyId, &kVCF, &kDP, &kDG, &kLF, &kPR, &kVC, &kDF, &kMT, &kCHR, &kKHR, &kSHR, &kAHR, &viterations, &piterations, &diterations, &physicsClientId))
+	if (!PyArg_ParseTupleAndKeywords(args, keywds, "i|dddddddddddddddiiii", kwlist, &bodyId, &kLST, &kAST, &kVST, &kVCF, &kDP, &kDG, &kLF, &kPR, &kVC, &kDF, &kMT, &kCHR, &kKHR, &kSHR, &kAHR, &viterations, &piterations, &diterations, &physicsClientId))
 	{
 		return NULL;
 	}
@@ -2001,10 +2004,160 @@ static PyObject* pybullet_clothParams(PyObject* self, PyObject* args, PyObject* 
 
     b3SharedMemoryStatusHandle statusHandle;
     int statusType;
-    b3SharedMemoryCommandHandle command = b3ClothParamsCommandInit(sm, bodyId, kVCF, kDP, kDG, kLF, kPR, kVC, kDF, kMT, kCHR, kKHR, kSHR, kAHR, viterations, piterations, diterations);
+    b3SharedMemoryCommandHandle command = b3ClothParamsCommandInit(sm, bodyId, kLST, kAST, kVST, kVCF, kDP, kDG, kLF, kPR, kVC, kDF, kMT, kCHR, kKHR, kSHR, kAHR, viterations, piterations, diterations);
 
     statusHandle = b3SubmitClientCommandAndWaitStatus(sm, command);
 	return Py_None;
+}
+
+// Load cloth patch
+static PyObject* pybullet_loadClothPatch(PyObject* self, PyObject* args, PyObject* keywds)
+{
+	int physicsClientId = 0;
+	int flags = 0;
+
+	static char* kwlist[] = {"numX", "numY", "corner00", "corner10", "corner01", "corner11", "scale", "mass", "position", "orientation", "bodyAnchorIds", "anchors", "collisionMargin", "physicsClientId", NULL};
+
+	int bodyUniqueId = -1;
+    int numX = 31;
+    int numY = 31;
+	PyObject* corner00Obj = 0;
+	PyObject* corner10Obj = 0;
+	PyObject* corner01Obj = 0;
+	PyObject* corner11Obj = 0;
+	double corner00Array[3] = {0, 0, 0};
+	double corner10Array[3] = {0, 0, 0};
+	double corner01Array[3] = {0, 0, 0};
+	double corner11Array[3] = {0, 0, 0};
+	double scale = 1;
+	double mass = 1;
+	double positionArray[3] = {0, 0, 0};
+	double orientationArray[4] = {0, 0, 0, 1};
+	PyObject* positionObj = 0;
+	PyObject* orientationObj = 0;
+	PyObject* bodyAnchorIdsObj = 0;
+	int bodyAnchorIdsArray[25];
+	PyObject* anchorsObj = 0;
+	int anchorsArray[25];
+	double collisionMargin = 0.01;
+
+	b3PhysicsClientHandle sm = 0;
+
+	if (!PyArg_ParseTupleAndKeywords(args, keywds, "iiOOOO|ddOOOOdi", kwlist, &numX, &numY, &corner00Obj, &corner10Obj, &corner01Obj, &corner11Obj, &scale, &mass, &positionObj, &orientationObj, &bodyAnchorIdsObj, &anchorsObj, &collisionMargin, &physicsClientId))
+	{
+		return NULL;
+	}
+
+	sm = getPhysicsClient(physicsClientId);
+	if (sm == 0)
+	{
+		PyErr_SetString(SpamError, "Not connected to physics server.");
+		return NULL;
+	}
+
+	if (corner00Obj)
+	{
+		int i = 0;
+		PyObject* corner00Seq = PySequence_Fast(corner00Obj, "expected a corner00 sequence");
+		int corner00Size = PySequence_Size(corner00Obj);
+		for (i = 0; i < corner00Size; i++)
+		{
+			corner00Array[i] = pybullet_internalGetFloatFromSequence(corner00Seq, i);
+		}
+	}
+
+	if (corner10Obj)
+	{
+		int i = 0;
+		PyObject* corner10Seq = PySequence_Fast(corner10Obj, "expected a corner10 sequence");
+		int corner10Size = PySequence_Size(corner10Obj);
+		for (i = 0; i < corner10Size; i++)
+		{
+			corner10Array[i] = pybullet_internalGetFloatFromSequence(corner10Seq, i);
+		}
+	}
+
+	if (corner01Obj)
+	{
+		int i = 0;
+		PyObject* corner01Seq = PySequence_Fast(corner01Obj, "expected a corner01 sequence");
+		int corner01Size = PySequence_Size(corner01Obj);
+		for (i = 0; i < corner01Size; i++)
+		{
+			corner01Array[i] = pybullet_internalGetFloatFromSequence(corner01Seq, i);
+		}
+	}
+
+	if (corner11Obj)
+	{
+		int i = 0;
+		PyObject* corner11Seq = PySequence_Fast(corner11Obj, "expected a corner11 sequence");
+		int corner11Size = PySequence_Size(corner11Obj);
+		for (i = 0; i < corner11Size; i++)
+		{
+			corner11Array[i] = pybullet_internalGetFloatFromSequence(corner11Seq, i);
+		}
+	}
+
+	if (positionObj)
+	{
+		int i = 0;
+		PyObject* positionSeq = PySequence_Fast(positionObj, "expected a position sequence");
+		int positionSize = PySequence_Size(positionObj);
+		for (i = 0; i < positionSize; i++)
+		{
+			positionArray[i] = pybullet_internalGetFloatFromSequence(positionSeq, i);
+		}
+	}
+
+	if (orientationObj)
+	{
+		int i = 0;
+		PyObject* orientationSeq = PySequence_Fast(orientationObj, "expected a position sequence");
+		int orientationSize = PySequence_Size(orientationObj);
+		for (i = 0; i < orientationSize; i++)
+		{
+			orientationArray[i] = pybullet_internalGetFloatFromSequence(orientationSeq, i);
+		}
+	}
+
+	if (bodyAnchorIdsObj)
+	{
+		int i = 0;
+		PyObject* bodyAnchorIdsSeq = PySequence_Fast(bodyAnchorIdsObj, "expected a position sequence");
+		int bodyAnchorIdsSize = PySequence_Size(bodyAnchorIdsObj);
+		for (i = 0; i < bodyAnchorIdsSize; i++)
+		{
+			bodyAnchorIdsArray[i] = pybullet_internalGetIntFromSequence(bodyAnchorIdsSeq, i);
+		}
+        bodyAnchorIdsArray[i] = -1;
+	}
+
+	if (anchorsObj)
+	{
+		int i = 0;
+		PyObject* anchorsSeq = PySequence_Fast(anchorsObj, "expected a position sequence");
+		int anchorsSize = PySequence_Size(anchorsObj);
+		for (i = 0; i < anchorsSize; i++)
+		{
+			anchorsArray[i] = pybullet_internalGetIntFromSequence(anchorsSeq, i);
+		}
+        anchorsArray[i] = -1;
+	}
+
+    b3SharedMemoryStatusHandle statusHandle;
+    int statusType;
+    b3SharedMemoryCommandHandle command = b3LoadClothPatchCommandInit(sm, numX, numY, corner00Array, corner10Array, corner01Array, corner11Array, scale, mass, positionArray, orientationArray, bodyAnchorIdsArray, anchorsArray, collisionMargin);
+
+    statusHandle = b3SubmitClientCommandAndWaitStatus(sm, command);
+    statusType = b3GetStatusType(statusHandle);
+    if (statusType != CMD_LOAD_SOFT_BODY_COMPLETED)
+    {
+        PyErr_SetString(SpamError, "Cannot load cloth patch.");
+        return NULL;
+    }
+    bodyUniqueId = b3GetStatusBodyIndex(statusHandle);
+	return PyLong_FromLong(bodyUniqueId);
 }
 
 // Load a softbody from an obj file
@@ -10452,6 +10605,8 @@ static PyMethodDef SpamMethods[] = {
 	 "Load cloth from an obj file."},
 	{"clothParams", (PyCFunction)pybullet_clothParams, METH_VARARGS | METH_KEYWORDS,
 	 "Update cloth parameters."},
+	{"loadClothPatch", (PyCFunction)pybullet_loadClothPatch, METH_VARARGS | METH_KEYWORDS,
+	 "Load cloth patch."},
 	{"loadSoftBody", (PyCFunction)pybullet_loadSoftBody, METH_VARARGS | METH_KEYWORDS,
 	 "Load a softbody from an obj file."},
 #endif

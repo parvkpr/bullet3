@@ -7312,10 +7312,6 @@ bool PhysicsServerCommandProcessor::processLoadClothCommand(const struct SharedM
         if (numTris > 0)
         {
             btSoftBody* psb = btSoftBodyHelpers::CreateFromTriMesh(m_data->m_dynamicsWorld->getWorldInfo(), &vertices[0], &indices[0], numTris);
-            btSoftBody::Material* pm = psb->appendMaterial();
-            pm->m_kLST = 0.5;
-            pm->m_flags -= btSoftBody::fMaterial::DebugDraw;
-            psb->generateBendingConstraints(2, pm);
             // psb->m_cfg.piterations = 20;
             // psb->m_cfg.kDF = 0.5;
             // psb->randomizeConstraints();
@@ -7348,6 +7344,8 @@ bool PhysicsServerCommandProcessor::processLoadClothCommand(const struct SharedM
             serverStatusOut.m_loadSoftBodyResultArguments.m_objectUniqueId = bodyUniqueId;
             serverStatusOut.m_type = CMD_LOAD_SOFT_BODY_COMPLETED;
 
+            printf("cloth node 0 pos: (%f, %f, %f)\n", psb->m_nodes[0].m_x.x(), psb->m_nodes[0].m_x.y(), psb->m_nodes[0].m_x.z());
+
             b3Notification notification;
             notification.m_notificationType = BODY_ADDED;
             notification.m_bodyArgs.m_bodyUniqueId = bodyUniqueId;
@@ -7366,6 +7364,14 @@ bool PhysicsServerCommandProcessor::processClothParamsCommand(const struct Share
     InternalBodyHandle* bodyHandle = m_data->m_bodyHandles.getHandle(clothParamsArgs.m_bodyId);
     btSoftBody* psb = bodyHandle->m_softBody;
 
+    btSoftBody::Material* pm = psb->appendMaterial();
+    // pm->m_kLST = 0.5;
+    pm->m_kLST = clothParamsArgs.m_kLST;  // Linear stiffness coefficient [0,1]
+    pm->m_kAST = clothParamsArgs.m_kAST;  // Area/Angular stiffness coefficient [0,1]
+    pm->m_kVST = clothParamsArgs.m_kVST;  // Volume stiffness coefficient [0,1]
+    pm->m_flags -= btSoftBody::fMaterial::DebugDraw;
+    psb->generateBendingConstraints(2, pm);
+
     psb->m_cfg.kVCF = clothParamsArgs.m_kVCF;                 // Velocities correction factor (Baumgarte)
     psb->m_cfg.kDP = clothParamsArgs.m_kDP;                   // Damping coefficient [0,1]
     psb->m_cfg.kDG = clothParamsArgs.m_kDG;                   // Drag coefficient [0,+inf]
@@ -7382,7 +7388,73 @@ bool PhysicsServerCommandProcessor::processClothParamsCommand(const struct Share
     psb->m_cfg.piterations = clothParamsArgs.m_piterations;   // Positions solver iterations
     psb->m_cfg.diterations = clothParamsArgs.m_diterations;   // Drift solver iterations
 
+    serverStatusOut.m_type = CMD_LOAD_SOFT_BODY_COMPLETED;
+    // TODO: Need to record and access impulse computed from each node
+    // https://github.com/bulletphysics/bullet3/blob/cdd56e46411527772711da5357c856a90ad9ea67/src/BulletSoftBody/btSoftBody.cpp#L3090
+    if (psb->m_rcontacts.size() > 0)
+        printf("%d cloth contacts: force: %f, pos: (%f, %f, %f)\n", psb->m_rcontacts.size(), psb->m_rcontacts[0].m_c2, psb->m_rcontacts[0].m_node->m_x.x(), psb->m_rcontacts[0].m_node->m_x.y(), psb->m_rcontacts[0].m_node->m_x.z());
 	return true;
+}
+
+bool PhysicsServerCommandProcessor::processLoadClothPatchCommand(const struct SharedMemoryCommand& clientCmd, struct SharedMemoryStatus& serverStatusOut, char* bufferServerToClient, int bufferSizeInBytes)
+{
+	serverStatusOut.m_type = CMD_LOAD_SOFT_BODY_FAILED;
+	bool hasStatus = true;
+#ifndef SKIP_SOFT_BODY_MULTI_BODY_DYNAMICS_WORLD
+	const LoadClothPatchArgs& loadClothPatchArgs = clientCmd.m_loadClothPatchArguments;
+
+    double scale = loadClothPatchArgs.m_scale;
+    double mass = loadClothPatchArgs.m_mass;
+    double collisionMargin = loadClothPatchArgs.m_collisionMargin;
+
+    const int numX = loadClothPatchArgs.m_numX; // 31;
+    const int numY = loadClothPatchArgs.m_numY; // 31;
+    const int fixed = 0; // 3;
+    // btSoftBody* psb = btSoftBodyHelpers::CreatePatch(m_data->m_dynamicsWorld->getWorldInfo(), btVector3(-0.5, 0, 0), btVector3(0.5, 0, 0), btVector3(-0.5, 1, 0), btVector3(0.5, 1, 0), numX, numY, fixed, true);
+    btVector3 corner00 = btVector3(loadClothPatchArgs.m_corner00[0], loadClothPatchArgs.m_corner00[1], loadClothPatchArgs.m_corner00[2]);
+    btVector3 corner10 = btVector3(loadClothPatchArgs.m_corner10[0], loadClothPatchArgs.m_corner10[1], loadClothPatchArgs.m_corner10[2]);
+    btVector3 corner01 = btVector3(loadClothPatchArgs.m_corner01[0], loadClothPatchArgs.m_corner01[1], loadClothPatchArgs.m_corner01[2]);
+    btVector3 corner11 = btVector3(loadClothPatchArgs.m_corner11[0], loadClothPatchArgs.m_corner11[1], loadClothPatchArgs.m_corner11[2]);
+    btSoftBody* psb = btSoftBodyHelpers::CreatePatch(m_data->m_dynamicsWorld->getWorldInfo(), corner00, corner10, corner01, corner11, numX, numY, fixed, true);
+    // psb->randomizeConstraints();
+    psb->rotate(btQuaternion(loadClothPatchArgs.m_orientation[0], loadClothPatchArgs.m_orientation[1], loadClothPatchArgs.m_orientation[2], loadClothPatchArgs.m_orientation[3]));
+    psb->translate(btVector3(loadClothPatchArgs.m_position[0], loadClothPatchArgs.m_position[1], loadClothPatchArgs.m_position[2]));
+    psb->scale(btVector3(scale, scale, scale));
+
+    psb->setTotalMass(mass, true);
+    psb->getCollisionShape()->setMargin(collisionMargin);
+    psb->getCollisionShape()->setUserPointer(psb);
+
+    const btVector3 localPivot = btVector3(0, 0, 0);
+    bool disableCollisionBetweenLinkedBodies = true;
+    btScalar influence = 1;
+    for (int i = 0; i < 25; i++) {
+        if (loadClothPatchArgs.m_anchors[i] < 0) {
+            break;
+        }
+        InternalBodyHandle* bodyHandleRigid = m_data->m_bodyHandles.getHandle(loadClothPatchArgs.m_bodyAnchorIds[i]);
+        btRigidBody* bodyRigid = bodyHandleRigid->m_rigidBody;
+        psb->appendAnchor(loadClothPatchArgs.m_anchors[i], bodyRigid, disableCollisionBetweenLinkedBodies, influence);
+    }
+
+    m_data->m_dynamicsWorld->addSoftBody(psb);
+    m_data->m_guiHelper->createCollisionShapeGraphicsObject(psb->getCollisionShape());
+    m_data->m_guiHelper->autogenerateGraphicsObjects(this->m_data->m_dynamicsWorld);
+    int bodyUniqueId = m_data->m_bodyHandles.allocHandle();
+    InternalBodyHandle* bodyHandle = m_data->m_bodyHandles.getHandle(bodyUniqueId);
+    bodyHandle->m_softBody = psb;
+    serverStatusOut.m_loadSoftBodyResultArguments.m_objectUniqueId = bodyUniqueId;
+    serverStatusOut.m_type = CMD_LOAD_SOFT_BODY_COMPLETED;
+
+    printf("cloth node 0 pos: (%f, %f, %f)\n", psb->m_nodes[0].m_x.x(), psb->m_nodes[0].m_x.y(), psb->m_nodes[0].m_x.z());
+
+    b3Notification notification;
+    notification.m_notificationType = BODY_ADDED;
+    notification.m_bodyArgs.m_bodyUniqueId = bodyUniqueId;
+    m_data->m_pluginManager.addNotification(notification);
+
+#endif
+	return hasStatus;
 }
 
 bool PhysicsServerCommandProcessor::processLoadSoftBodyCommand(const struct SharedMemoryCommand& clientCmd, struct SharedMemoryStatus& serverStatusOut, char* bufferServerToClient, int bufferSizeInBytes)
@@ -7446,21 +7518,54 @@ bool PhysicsServerCommandProcessor::processLoadSoftBodyCommand(const struct Shar
 			int numTris = indices.size() / 3;
 			if (numTris > 0)
 			{
+                // const int numX = 31;
+                // const int numY = 31;
+                // const int fixed = 0; // 3;
+                // btSoftBody* psb = btSoftBodyHelpers::CreatePatch(m_data->m_dynamicsWorld->getWorldInfo(), btVector3(-0.5, 0, 0), btVector3(0.5, 0, 0), btVector3(-0.5, 1, 0), btVector3(0.5, 1, 0), numX, numY, fixed, true);
 				btSoftBody* psb = btSoftBodyHelpers::CreateFromTriMesh(m_data->m_dynamicsWorld->getWorldInfo(), &vertices[0], &indices[0], numTris);
 				btSoftBody::Material* pm = psb->appendMaterial();
-				pm->m_kLST = 0.5;
+				// pm->m_kLST = 0.5;
 				pm->m_flags -= btSoftBody::fMaterial::DebugDraw;
 				psb->generateBendingConstraints(2, pm);
 				psb->m_cfg.piterations = 20;
 				psb->m_cfg.kDF = 0.5;
+                // psb->m_cfg.kCHR = 1.0;
+                // psb->m_cfg.kKHR = 1.0;
+                // psb->m_cfg.kAHR = 1.0;
 				psb->randomizeConstraints();
 				psb->rotate(btQuaternion(0.70711, 0, 0, 0.70711));
 				psb->translate(btVector3(-0.05, 0, 1.0));
 				psb->scale(btVector3(scale, scale, scale));
 
+                // InternalBodyHandle* bodyHandleRigid1 = m_data->m_bodyHandles.getHandle(1);
+                // btRigidBody* bodyRigid1 = bodyHandleRigid1->m_rigidBody;
+                // InternalBodyHandle* bodyHandleRigid2 = m_data->m_bodyHandles.getHandle(2);
+                // btRigidBody* bodyRigid2 = bodyHandleRigid2->m_rigidBody;
+                // InternalBodyHandle* bodyHandleRigid3 = m_data->m_bodyHandles.getHandle(3);
+                // btRigidBody* bodyRigid3 = bodyHandleRigid3->m_rigidBody;
+                // InternalBodyHandle* bodyHandleRigid4 = m_data->m_bodyHandles.getHandle(4);
+                // btRigidBody* bodyRigid4 = bodyHandleRigid4->m_rigidBody;
+                // const btVector3 localPivot = btVector3(0, 0, 0);
+                // bool disableCollisionBetweenLinkedBodies = true;
+                // btScalar influence = 1;
+                // psb->appendAnchor(0, bodyRigid1, disableCollisionBetweenLinkedBodies, influence);
+                // psb->appendAnchor(30, bodyRigid2, disableCollisionBetweenLinkedBodies, influence);
+                // psb->appendAnchor(960, bodyRigid3, disableCollisionBetweenLinkedBodies, influence);
+                // psb->appendAnchor(930, bodyRigid4, disableCollisionBetweenLinkedBodies, influence);
+                // psb->appendAnchor(0, bodyRigid1, disableCollisionBetweenLinkedBodies, influence);
+                // psb->appendAnchor(61, bodyRigid2, disableCollisionBetweenLinkedBodies, influence);
+                // psb->appendAnchor(3843, bodyRigid3, disableCollisionBetweenLinkedBodies, influence);
+                // psb->appendAnchor(3782, bodyRigid4, disableCollisionBetweenLinkedBodies, influence);
+
 				psb->setTotalMass(mass, true);
 				psb->getCollisionShape()->setMargin(collisionMargin);
 				psb->getCollisionShape()->setUserPointer(psb);
+
+                // psb->setMass(0, 0);
+                // psb->setMass(30, 0);
+                // psb->setMass(960, 0);
+                // psb->setMass(930, 0);
+
 				m_data->m_dynamicsWorld->addSoftBody(psb);
 				m_data->m_guiHelper->createCollisionShapeGraphicsObject(psb->getCollisionShape());
 				m_data->m_guiHelper->autogenerateGraphicsObjects(this->m_data->m_dynamicsWorld);
@@ -11265,6 +11370,11 @@ bool PhysicsServerCommandProcessor::processCommand(const struct SharedMemoryComm
 		case CMD_CLOTH_PARAMS:
 		{
 			hasStatus = processClothParamsCommand(clientCmd, serverStatusOut, bufferServerToClient, bufferSizeInBytes);
+			break;
+		}
+		case CMD_LOAD_CLOTH_PATCH:
+		{
+			hasStatus = processLoadClothPatchCommand(clientCmd, serverStatusOut, bufferServerToClient, bufferSizeInBytes);
 			break;
 		}
 		case CMD_LOAD_SOFT_BODY:

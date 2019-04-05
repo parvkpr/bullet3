@@ -288,7 +288,7 @@ B3_SHARED_API b3SharedMemoryCommandHandle b3LoadClothCommandInit(b3PhysicsClient
 	return 0;
 }
 
-B3_SHARED_API b3SharedMemoryCommandHandle b3ClothParamsCommandInit(b3PhysicsClientHandle physClient, int bodyId, double kVCF, double kDP, double kDG, double kLF, double kPR, double kVC, double kDF, double kMT, double kCHR, double kKHR, double kSHR, double kAHR, int viterations, int piterations, int diterations)
+B3_SHARED_API b3SharedMemoryCommandHandle b3ClothParamsCommandInit(b3PhysicsClientHandle physClient, int bodyId, double kLST, double kAST, double kVST, double kVCF, double kDP, double kDG, double kLF, double kPR, double kVC, double kDF, double kMT, double kCHR, double kKHR, double kSHR, double kAHR, int viterations, int piterations, int diterations)
 {
 	PhysicsClient* cl = (PhysicsClient*)physClient;
 	b3Assert(cl);
@@ -301,6 +301,9 @@ B3_SHARED_API b3SharedMemoryCommandHandle b3ClothParamsCommandInit(b3PhysicsClie
 		command->m_type = CMD_CLOTH_PARAMS;
 
         command->m_clothParamsArguments.m_bodyId = bodyId;
+        command->m_clothParamsArguments.m_kLST = kLST;
+        command->m_clothParamsArguments.m_kAST = kAST;
+        command->m_clothParamsArguments.m_kVST = kVST;
         command->m_clothParamsArguments.m_kVCF = kVCF;
         command->m_clothParamsArguments.m_kDP = kDP;
         command->m_clothParamsArguments.m_kDG = kDG;
@@ -319,6 +322,58 @@ B3_SHARED_API b3SharedMemoryCommandHandle b3ClothParamsCommandInit(b3PhysicsClie
 
 		return (b3SharedMemoryCommandHandle)command;
     }
+	return 0;
+}
+
+B3_SHARED_API b3SharedMemoryCommandHandle b3LoadClothPatchCommandInit(b3PhysicsClientHandle physClient, int numX, int numY, const double* corner00, const double* corner10, const double* corner01, const double* corner11, double scale, double mass, const double* position, const double* orientation, const int* bodyAnchorIds, const int* anchors, double collisionMargin)
+{
+	PhysicsClient* cl = (PhysicsClient*)physClient;
+	b3Assert(cl);
+	b3Assert(cl->canSubmitCommand());
+
+	if (cl->canSubmitCommand())
+	{
+		struct SharedMemoryCommand* command = cl->getAvailableSharedMemoryCommand();
+		b3Assert(command);
+		command->m_type = CMD_LOAD_CLOTH_PATCH;
+
+        command->m_loadClothPatchArguments.m_numX = numX;
+        command->m_loadClothPatchArguments.m_numY = numY;
+        command->m_loadClothPatchArguments.m_corner00[0] = corner00[0];
+        command->m_loadClothPatchArguments.m_corner00[1] = corner00[1];
+        command->m_loadClothPatchArguments.m_corner00[2] = corner00[2];
+        command->m_loadClothPatchArguments.m_corner10[0] = corner10[0];
+        command->m_loadClothPatchArguments.m_corner10[1] = corner10[1];
+        command->m_loadClothPatchArguments.m_corner10[2] = corner10[2];
+        command->m_loadClothPatchArguments.m_corner01[0] = corner01[0];
+        command->m_loadClothPatchArguments.m_corner01[1] = corner01[1];
+        command->m_loadClothPatchArguments.m_corner01[2] = corner01[2];
+        command->m_loadClothPatchArguments.m_corner11[0] = corner11[0];
+        command->m_loadClothPatchArguments.m_corner11[1] = corner11[1];
+        command->m_loadClothPatchArguments.m_corner11[2] = corner11[2];
+        command->m_loadClothPatchArguments.m_scale = scale;
+        command->m_loadClothPatchArguments.m_mass = mass;
+        command->m_loadClothPatchArguments.m_position[0] = position[0];
+        command->m_loadClothPatchArguments.m_position[1] = position[1];
+        command->m_loadClothPatchArguments.m_position[2] = position[2];
+        command->m_loadClothPatchArguments.m_orientation[0] = orientation[0];
+        command->m_loadClothPatchArguments.m_orientation[1] = orientation[1];
+        command->m_loadClothPatchArguments.m_orientation[2] = orientation[2];
+        command->m_loadClothPatchArguments.m_orientation[3] = orientation[3];
+        int i = 0;
+        for (i = 0; i < 25; i++) {
+            if (anchors[i] < 0) {
+                break;
+            }
+            command->m_loadClothPatchArguments.m_bodyAnchorIds[i] = bodyAnchorIds[i];
+            command->m_loadClothPatchArguments.m_anchors[i] = anchors[i];
+        }
+        command->m_loadClothPatchArguments.m_bodyAnchorIds[i] = -1;
+        command->m_loadClothPatchArguments.m_anchors[i] = -1;
+        command->m_loadClothPatchArguments.m_collisionMargin = collisionMargin;
+
+		return (b3SharedMemoryCommandHandle)command;
+	}
 	return 0;
 }
 

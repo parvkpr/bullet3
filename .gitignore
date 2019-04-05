@@ -2,6 +2,8 @@
 /build3/gmake
 /build_cmake/
 
+examples/pybullet/gym/*.so
+
 *.pyc
 
 # Python
