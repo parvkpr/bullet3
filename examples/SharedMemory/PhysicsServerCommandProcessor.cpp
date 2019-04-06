@@ -2369,8 +2369,10 @@ struct ProgrammaticUrdfInterface : public URDFImporterInterface
 			jointMaxVelocity = 0;
 			jointFriction = 0;
 			jointDamping = 0;
-			jointLowerLimit = 1;
-			jointUpperLimit = -1;
+			// jointLowerLimit = 1;
+			// jointUpperLimit = -1;
+			jointLowerLimit = m_createBodyArgs.m_linkLowerLimits[urdfLinkIndex];
+			jointUpperLimit = m_createBodyArgs.m_linkUpperLimits[urdfLinkIndex];
 
 			parent2joint.setOrigin(btVector3(
 				m_createBodyArgs.m_linkPositions[urdfLinkIndex * 3 + 0],
@@ -7459,6 +7461,11 @@ bool PhysicsServerCommandProcessor::processLoadClothPatchCommand(const struct Sh
 
 bool PhysicsServerCommandProcessor::processLoadSoftBodyCommand(const struct SharedMemoryCommand& clientCmd, struct SharedMemoryStatus& serverStatusOut, char* bufferServerToClient, int bufferSizeInBytes)
 {
+    // InternalBodyHandle* bodyHandleRigid = m_data->m_bodyHandles.getHandle(1);
+    // btMultiBody* bodyRigid = bodyHandleRigid->m_multiBody;
+    // bodyRigid->getLink(8).m_jointLowerLimit = -0.05;
+    // bodyRigid->getLink(8).m_jointUpperLimit = 0.05;
+
 	serverStatusOut.m_type = CMD_LOAD_SOFT_BODY_FAILED;
 	bool hasStatus = true;
 #ifndef SKIP_SOFT_BODY_MULTI_BODY_DYNAMICS_WORLD

@@ -2213,6 +2213,8 @@ int b3RobotSimulatorClientAPI_NoDirect::createMultiBody(struct b3RobotSimulatorC
 		btQuaternion linkInertialFrameOrientation = args.m_linkInertialFrameOrientations[i];
 		int linkParentIndex = args.m_linkParentIndices[i];
 		int linkJointType = args.m_linkJointTypes[i];
+		double linkLowerLimit = args.m_linkLowerLimits[i];
+		double linkUpperLimit = args.m_linkUpperLimits[i];
 		btVector3 linkJointAxis = args.m_linkJointAxes[i];
 
 		double doubleLinkPosition[3];
@@ -2237,7 +2239,9 @@ int b3RobotSimulatorClientAPI_NoDirect::createMultiBody(struct b3RobotSimulatorC
 							  doubleLinkInertialFrameOrientation,
 							  linkParentIndex,
 							  linkJointType,
-							  doubleLinkJointAxis);
+							  doubleLinkJointAxis,
+                              linkLowerLimit,
+                              linkUpperLimit);
 	}
 
 	statusHandle = b3SubmitClientCommandAndWaitStatus(sm, command);
