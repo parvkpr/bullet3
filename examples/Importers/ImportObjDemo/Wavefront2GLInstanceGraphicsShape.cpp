@@ -107,7 +107,7 @@ GLInstanceGraphicsShape* btgCreateGraphicsShapeFromWavefrontObj(std::vector<tiny
 						}
 						else
 						{
-							b3Warning("obj texture coordinate out-of-range!");
+							// b3Warning("obj texture coordinate out-of-range!");
 							vtx2.uv[0] = 0;
 							vtx2.uv[1] = 0;
 						}
