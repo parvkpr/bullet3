@@ -1877,7 +1877,6 @@ static PyObject* pybullet_loadSDF(PyObject* self, PyObject* args, PyObject* keyw
 static PyObject* pybullet_loadCloth(PyObject* self, PyObject* args, PyObject* keywds)
 {
 	int physicsClientId = 0;
-	int flags = 0;
 
 	static char* kwlist[] = {"fileName", "scale", "mass", "position", "orientation", "bodyAnchorId", "anchors", "collisionMargin", "physicsClientId", NULL};
 
@@ -1964,7 +1963,6 @@ static PyObject* pybullet_loadCloth(PyObject* self, PyObject* args, PyObject* ke
 static PyObject* pybullet_clothParams(PyObject* self, PyObject* args, PyObject* keywds)
 {
 	int physicsClientId = 0;
-	int flags = 0;
 
 	static char* kwlist[] = {"bodyId",  "kLST", "kAST", "kVST", "kVCF",  "kDP",  "kDG",  "kLF",  "kPR",  "kVC",  "kDF",  "kMT",  "kCHR",  "kKHR",  "kSHR",  "kAHR",  "viterations",  "piterations",  "diterations", "physicsClientId", NULL};
 
@@ -2010,11 +2008,125 @@ static PyObject* pybullet_clothParams(PyObject* self, PyObject* args, PyObject* 
 	return Py_None;
 }
 
+static PyObject* pybullet_getSoftBodyData(PyObject* self, PyObject* args, PyObject* keywds)
+{
+	int physicsClientId = 0;
+
+	static char* kwlist[] = {"bodyId", "physicsClientId", NULL};
+
+    int bodyId = -1;
+
+	b3PhysicsClientHandle sm = 0;
+
+	if (!PyArg_ParseTupleAndKeywords(args, keywds, "i|i", kwlist, &bodyId, &physicsClientId))
+	{
+		return NULL;
+	}
+
+	sm = getPhysicsClient(physicsClientId);
+	if (sm == 0)
+	{
+		PyErr_SetString(SpamError, "Not connected to physics server.");
+		return NULL;
+	}
+
+	struct b3SoftBodyData data;
+	b3SharedMemoryCommandHandle command;
+
+	if (b3CanSubmitCommand(sm))
+	{
+		b3SharedMemoryStatusHandle statusHandle;
+		int statusType;
+        b3SharedMemoryCommandHandle command = b3GetSoftBodyDataCommand(sm, bodyId);
+
+		statusHandle = b3SubmitClientCommandAndWaitStatus(sm, command);
+		statusType = b3GetStatusType(statusHandle);
+		if (statusType == CMD_SOFTBODY_DATA_COMPLETED)
+		{
+			PyObject* pyResultList;
+            PyObject* pyX;
+            PyObject* pyY;
+            PyObject* pyZ;
+            PyObject* pyContactPosX;
+            PyObject* pyContactPosY;
+            PyObject* pyContactPosZ;
+            PyObject* pyContactForceX;
+            PyObject* pyContactForceY;
+            PyObject* pyContactForceZ;
+            pyResultList = PyTuple_New(9);
+            b3GetSoftBodyData(statusHandle, &data);
+
+#ifdef PYBULLET_USE_NUMPY
+            npy_intp dims[1] = {data.m_numNodes};
+            npy_intp dimsContact[1] = {data.m_numContacts};
+
+            pyX = PyArray_SimpleNew(1, dims, NPY_FLOAT32);
+            pyY = PyArray_SimpleNew(1, dims, NPY_FLOAT32);
+            pyZ = PyArray_SimpleNew(1, dims, NPY_FLOAT32);
+            pyContactPosX = PyArray_SimpleNew(1, dimsContact, NPY_FLOAT32);
+            pyContactPosY = PyArray_SimpleNew(1, dimsContact, NPY_FLOAT32);
+            pyContactPosZ = PyArray_SimpleNew(1, dimsContact, NPY_FLOAT32);
+            pyContactForceX = PyArray_SimpleNew(1, dimsContact, NPY_FLOAT32);
+            pyContactForceY = PyArray_SimpleNew(1, dimsContact, NPY_FLOAT32);
+            pyContactForceZ = PyArray_SimpleNew(1, dimsContact, NPY_FLOAT32);
+
+            memcpy(PyArray_DATA(pyX), data.m_x, data.m_numNodes * sizeof(float));
+            memcpy(PyArray_DATA(pyY), data.m_y, data.m_numNodes * sizeof(float));
+            memcpy(PyArray_DATA(pyZ), data.m_z, data.m_numNodes * sizeof(float));
+            memcpy(PyArray_DATA(pyContactPosX), data.m_contact_pos_x, data.m_numContacts * sizeof(float));
+            memcpy(PyArray_DATA(pyContactPosY), data.m_contact_pos_y, data.m_numContacts * sizeof(float));
+            memcpy(PyArray_DATA(pyContactPosZ), data.m_contact_pos_z, data.m_numContacts * sizeof(float));
+            memcpy(PyArray_DATA(pyContactForceX), data.m_contact_force_x, data.m_numContacts * sizeof(float));
+            memcpy(PyArray_DATA(pyContactForceY), data.m_contact_force_y, data.m_numContacts * sizeof(float));
+            memcpy(PyArray_DATA(pyContactForceZ), data.m_contact_force_z, data.m_numContacts * sizeof(float));
+#else   //PYBULLET_USE_NUMPY
+            pyX = PyTuple_New(data.m_numNodes);
+            pyY = PyTuple_New(data.m_numNodes);
+            pyZ = PyTuple_New(data.m_numNodes);
+            pyContactPosX = PyTuple_New(data.m_numContacts);
+            pyContactPosY = PyTuple_New(data.m_numContacts);
+            pyContactPosZ = PyTuple_New(data.m_numContacts);
+            pyContactForceX = PyTuple_New(data.m_numContacts);
+            pyContactForceY = PyTuple_New(data.m_numContacts);
+            pyContactForceZ = PyTuple_New(data.m_numContacts);
+            for (int i = 0; i < data.m_numNodes; i++)
+            {
+                PyTuple_SetItem(pyX, i, PyFloat_FromDouble(data.m_x[i]));
+                PyTuple_SetItem(pyY, i, PyFloat_FromDouble(data.m_y[i]));
+                PyTuple_SetItem(pyZ, i, PyFloat_FromDouble(data.m_z[i]));
+            }
+            for (int i = 0; i < data.m_numContacts; i++)
+            {
+                PyTuple_SetItem(pyContactPosX, i, PyFloat_FromDouble(data.m_contact_pos_x[i]));
+                PyTuple_SetItem(pyContactPosY, i, PyFloat_FromDouble(data.m_contact_pos_y[i]));
+                PyTuple_SetItem(pyContactPosZ, i, PyFloat_FromDouble(data.m_contact_pos_z[i]));
+                PyTuple_SetItem(pyContactForceX, i, PyFloat_FromDouble(data.m_contact_force_x[i]));
+                PyTuple_SetItem(pyContactForceY, i, PyFloat_FromDouble(data.m_contact_force_y[i]));
+                PyTuple_SetItem(pyContactForceZ, i, PyFloat_FromDouble(data.m_contact_force_z[i]));
+            }
+#endif  //PYBULLET_USE_NUMPY
+
+			PyTuple_SetItem(pyResultList, 0, pyX);
+			PyTuple_SetItem(pyResultList, 1, pyY);
+			PyTuple_SetItem(pyResultList, 2, pyZ);
+			PyTuple_SetItem(pyResultList, 3, pyContactPosX);
+			PyTuple_SetItem(pyResultList, 4, pyContactPosY);
+			PyTuple_SetItem(pyResultList, 5, pyContactPosZ);
+			PyTuple_SetItem(pyResultList, 6, pyContactForceX);
+			PyTuple_SetItem(pyResultList, 7, pyContactForceY);
+			PyTuple_SetItem(pyResultList, 8, pyContactForceZ);
+			return pyResultList;
+		}
+	}
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 // Load cloth patch
 static PyObject* pybullet_loadClothPatch(PyObject* self, PyObject* args, PyObject* keywds)
 {
 	int physicsClientId = 0;
-	int flags = 0;
 
 	static char* kwlist[] = {"numX", "numY", "corner00", "corner10", "corner01", "corner11", "scale", "mass", "position", "orientation", "bodyAnchorIds", "anchors", "collisionMargin", "physicsClientId", NULL};
 
@@ -2164,7 +2276,6 @@ static PyObject* pybullet_loadClothPatch(PyObject* self, PyObject* args, PyObjec
 static PyObject* pybullet_loadSoftBody(PyObject* self, PyObject* args, PyObject* keywds)
 {
 	int physicsClientId = 0;
-	int flags = 0;
 
 	static char* kwlist[] = {"fileName", "scale", "mass", "collisionMargin", "physicsClientId", NULL};
 
@@ -10625,6 +10736,8 @@ static PyMethodDef SpamMethods[] = {
 	 "Load cloth from an obj file."},
 	{"clothParams", (PyCFunction)pybullet_clothParams, METH_VARARGS | METH_KEYWORDS,
 	 "Update cloth parameters."},
+	{"getSoftBodyData", (PyCFunction)pybullet_getSoftBodyData, METH_VARARGS | METH_KEYWORDS,
+	 "Get soft body nodes."},
 	{"loadClothPatch", (PyCFunction)pybullet_loadClothPatch, METH_VARARGS | METH_KEYWORDS,
 	 "Load cloth patch."},
 	{"loadSoftBody", (PyCFunction)pybullet_loadSoftBody, METH_VARARGS | METH_KEYWORDS,

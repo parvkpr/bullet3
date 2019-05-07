@@ -300,6 +300,7 @@ public:
 		btScalar m_c2;     // ima*dt
 		btScalar m_c3;     // Friction
 		btScalar m_c4;     // Hardness
+        btVector3 m_impulse;
 	};
 	/* SContact		*/
 	struct SContact

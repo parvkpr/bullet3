@@ -3,6 +3,10 @@
 
 //this is a very experimental draft of commands. We will iterate on this API (commands, arguments etc)
 
+// #include "BulletSoftBody/btSoftBodyHelpers.h"
+// #include "LinearMath/btAlignedObjectArray.h"
+#include "BulletSoftBody/btSoftBody.h"
+
 #include "SharedMemoryPublic.h"
 
 #ifdef __GNUC__
@@ -533,6 +537,28 @@ struct ClothParamsArgs
     int m_viterations;   // Velocities solver iterations
     int m_piterations;   // Positions solver iterations
     int m_diterations;   // Drift solver iterations
+};
+
+struct SoftBodyDataArgs
+{
+    int m_bodyId;
+};
+
+struct SendSoftBodyData
+{
+	int m_numNodes;
+    // btAlignedObjectArray<Node> m_nodes;
+    // btSoftBody::tNodeArray m_nodes;
+    float m_x[10000];
+    float m_y[10000];
+    float m_z[10000];
+	int m_numContacts;
+    float m_contact_pos_x[10000];
+    float m_contact_pos_y[10000];
+    float m_contact_pos_z[10000];
+    float m_contact_force_x[10000];
+    float m_contact_force_y[10000];
+    float m_contact_force_z[10000];
 };
 
 struct LoadClothPatchArgs
@@ -1144,6 +1170,7 @@ struct SharedMemoryCommand
 		struct RequestRaycastIntersections m_requestRaycastIntersections;
 		struct LoadClothArgs m_loadClothArguments;
 		struct ClothParamsArgs m_clothParamsArguments;
+		struct SoftBodyDataArgs m_softBodyDataArguments;
 		struct LoadClothPatchArgs m_loadClothPatchArguments;
 		struct LoadSoftBodyArgs m_loadSoftBodyArguments;
 		struct VRCameraState m_vrCameraStateArguments;
@@ -1232,6 +1259,7 @@ struct SharedMemoryStatus
 		struct b3CustomCommandResultArgs m_customCommandResultArgs;
 		struct b3PhysicsSimulationParameters m_simulationParameterResultArgs;
 		struct b3StateSerializationArguments m_saveStateResultArgs;
+		struct SendSoftBodyData m_sendSoftBodyData;
 		struct b3LoadSoftBodyResultArgs m_loadSoftBodyResultArguments;
 		struct SendCollisionShapeDataArgs m_sendCollisionShapeArgs;
 		struct SyncUserDataArgs m_syncUserDataArgs;

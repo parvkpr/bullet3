@@ -416,6 +416,10 @@ void OpenGLGuiHelper::createCollisionShapeGraphicsObject(btCollisionShape* colli
 		{
 			int shapeId = registerGraphicsShape(&gfxVertices[0].xyzw[0], gfxVertices.size(), &indices[0], indices.size(), B3_GL_TRIANGLES,
 												m_data->m_checkedTexture);
+            // float color[4] = {1.0, 1.0, 1.0, 1.0};
+            // int shapeId = m_data->m_glApp->m_renderer->drawLines(vertices, color, numvertices, 4, indices, numIndices, 0.1);
+            // unsigned int j = (unsigned int)indices[0];
+            // m_data->m_glApp->m_renderer->drawLines(&gfxVertices[0].xyzw[0], color, gfxVertices.size(), 4, &j, indices.size(), 0.1);
 
 			b3Assert(shapeId >= 0);
 			collisionShape->setUserIndex(shapeId);

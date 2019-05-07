@@ -7346,7 +7346,7 @@ bool PhysicsServerCommandProcessor::processLoadClothCommand(const struct SharedM
             serverStatusOut.m_loadSoftBodyResultArguments.m_objectUniqueId = bodyUniqueId;
             serverStatusOut.m_type = CMD_LOAD_SOFT_BODY_COMPLETED;
 
-            printf("cloth node 0 pos: (%f, %f, %f)\n", psb->m_nodes[0].m_x.x(), psb->m_nodes[0].m_x.y(), psb->m_nodes[0].m_x.z());
+            // printf("cloth node 0 pos: (%f, %f, %f)\n", psb->m_nodes[0].m_x.x(), psb->m_nodes[0].m_x.y(), psb->m_nodes[0].m_x.z());
 
             b3Notification notification;
             notification.m_notificationType = BODY_ADDED;
@@ -7391,12 +7391,54 @@ bool PhysicsServerCommandProcessor::processClothParamsCommand(const struct Share
     psb->m_cfg.diterations = clothParamsArgs.m_diterations;   // Drift solver iterations
 
     serverStatusOut.m_type = CMD_LOAD_SOFT_BODY_COMPLETED;
-    // TODO: Need to record and access impulse computed from each node
-    // https://github.com/bulletphysics/bullet3/blob/cdd56e46411527772711da5357c856a90ad9ea67/src/BulletSoftBody/btSoftBody.cpp#L3090
-    if (psb->m_rcontacts.size() > 0)
-        printf("%d cloth contacts: force: %f, pos: (%f, %f, %f)\n", psb->m_rcontacts.size(), psb->m_rcontacts[0].m_c2, psb->m_rcontacts[0].m_node->m_x.x(), psb->m_rcontacts[0].m_node->m_x.y(), psb->m_rcontacts[0].m_node->m_x.z());
 	return true;
 }
+
+bool PhysicsServerCommandProcessor::processRequestSoftBodyDataCommand(const struct SharedMemoryCommand& clientCmd, struct SharedMemoryStatus& serverStatusOut, char* bufferServerToClient, int bufferSizeInBytes)
+{
+	serverStatusOut.m_type = CMD_SOFTBODY_DATA_FAILED;
+	const SoftBodyDataArgs& softBodyDataArgs = clientCmd.m_softBodyDataArguments;
+
+    InternalBodyHandle* bodyHandle = m_data->m_bodyHandles.getHandle(softBodyDataArgs.m_bodyId);
+    btSoftBody* psb = bodyHandle->m_softBody;
+    serverStatusOut.m_sendSoftBodyData.m_numNodes = psb->m_nodes.size();
+    // printf("cloth node 0 pos: (%f, %f, %f)\n", psb->m_nodes[0].m_x.x(), psb->m_nodes[0].m_x.y(), psb->m_nodes[0].m_x.z());
+    for (int i = 0; i < psb->m_nodes.size() && i < 10000; i++)
+    {
+        serverStatusOut.m_sendSoftBodyData.m_x[i] = psb->m_nodes[i].m_x.x();
+        serverStatusOut.m_sendSoftBodyData.m_y[i] = psb->m_nodes[i].m_x.y();
+        serverStatusOut.m_sendSoftBodyData.m_z[i] = psb->m_nodes[i].m_x.z();
+    }
+
+    // TODO: Need to record and access impulse computed from each node
+    // https://github.com/bulletphysics/bullet3/blob/cdd56e46411527772711da5357c856a90ad9ea67/src/BulletSoftBody/btSoftBody.cpp#L3090
+    // if (psb->m_rcontacts.size() > 0)
+    //     printf("%d cloth contacts: force: %f, pos: (%f, %f, %f)\n", psb->m_rcontacts.size(), psb->m_rcontacts[0].m_c2, psb->m_rcontacts[0].m_node->m_x.x(), psb->m_rcontacts[0].m_node->m_x.y(), psb->m_rcontacts[0].m_node->m_x.z());
+    serverStatusOut.m_sendSoftBodyData.m_numContacts = psb->m_rcontacts.size();
+    for (int i = 0; i < psb->m_rcontacts.size() && i < 10000; i++)
+    {
+        serverStatusOut.m_sendSoftBodyData.m_contact_pos_x[i] = psb->m_rcontacts[i].m_node->m_x.x();
+        serverStatusOut.m_sendSoftBodyData.m_contact_pos_y[i] = psb->m_rcontacts[i].m_node->m_x.y();
+        serverStatusOut.m_sendSoftBodyData.m_contact_pos_z[i] = psb->m_rcontacts[i].m_node->m_x.z();
+        // serverStatusOut.m_sendSoftBodyData.m_contact_force_x[i] = psb->m_rcontacts[i].m_impulse.x() / m_data->m_physicsDeltaTime;
+        // serverStatusOut.m_sendSoftBodyData.m_contact_force_y[i] = psb->m_rcontacts[i].m_impulse.y() / m_data->m_physicsDeltaTime;
+        // serverStatusOut.m_sendSoftBodyData.m_contact_force_z[i] = psb->m_rcontacts[i].m_impulse.z() / m_data->m_physicsDeltaTime;
+        serverStatusOut.m_sendSoftBodyData.m_contact_force_x[i] = psb->m_rcontacts[i].m_impulse.x() * psb->m_rcontacts[i].m_c2;
+        serverStatusOut.m_sendSoftBodyData.m_contact_force_y[i] = psb->m_rcontacts[i].m_impulse.y() * psb->m_rcontacts[i].m_c2;
+        serverStatusOut.m_sendSoftBodyData.m_contact_force_z[i] = psb->m_rcontacts[i].m_impulse.z() * psb->m_rcontacts[i].m_c2;
+        // serverStatusOut.m_sendSoftBodyData.m_contact_force_x[i] = (1.0 / psb->m_rcontacts[i].m_node->m_im) * psb->m_rcontacts[i].m_impulse.x() * psb->m_rcontacts[i].m_c2 / m_data->m_physicsDeltaTime;
+        // serverStatusOut.m_sendSoftBodyData.m_contact_force_y[i] = (1.0 / psb->m_rcontacts[i].m_node->m_im) * psb->m_rcontacts[i].m_impulse.y() * psb->m_rcontacts[i].m_c2 / m_data->m_physicsDeltaTime;
+        // serverStatusOut.m_sendSoftBodyData.m_contact_force_z[i] = (1.0 / psb->m_rcontacts[i].m_node->m_im) * psb->m_rcontacts[i].m_impulse.z() * psb->m_rcontacts[i].m_c2 / m_data->m_physicsDeltaTime;
+        // serverStatusOut.m_sendSoftBodyData.m_contact_force_x[i] = (1.0 / psb->m_rcontacts[i].m_node->m_im) * psb->m_rcontacts[i].m_impulse.x() / m_data->m_physicsDeltaTime;
+        // serverStatusOut.m_sendSoftBodyData.m_contact_force_y[i] = (1.0 / psb->m_rcontacts[i].m_node->m_im) * psb->m_rcontacts[i].m_impulse.y() / m_data->m_physicsDeltaTime;
+        // serverStatusOut.m_sendSoftBodyData.m_contact_force_z[i] = (1.0 / psb->m_rcontacts[i].m_node->m_im) * psb->m_rcontacts[i].m_impulse.z() / m_data->m_physicsDeltaTime;
+    }
+
+	bool hasStatus = true;
+	serverStatusOut.m_type = CMD_SOFTBODY_DATA_COMPLETED;
+	return hasStatus;
+}
+
 
 bool PhysicsServerCommandProcessor::processLoadClothPatchCommand(const struct SharedMemoryCommand& clientCmd, struct SharedMemoryStatus& serverStatusOut, char* bufferServerToClient, int bufferSizeInBytes)
 {
@@ -11377,6 +11419,11 @@ bool PhysicsServerCommandProcessor::processCommand(const struct SharedMemoryComm
 		case CMD_CLOTH_PARAMS:
 		{
 			hasStatus = processClothParamsCommand(clientCmd, serverStatusOut, bufferServerToClient, bufferSizeInBytes);
+			break;
+		}
+		case CMD_GET_SOFTBODY_DATA:
+		{
+			hasStatus = processRequestSoftBodyDataCommand(clientCmd, serverStatusOut, bufferServerToClient, bufferSizeInBytes);
 			break;
 		}
 		case CMD_LOAD_CLOTH_PATCH:

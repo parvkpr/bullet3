@@ -37,6 +37,7 @@ enum EnumSharedMemoryClientCommand
 	CMD_LOAD_MJCF,
 	CMD_LOAD_CLOTH,
 	CMD_CLOTH_PARAMS,
+    CMD_GET_SOFTBODY_DATA,
 	CMD_LOAD_CLOTH_PATCH,
 	CMD_LOAD_SOFT_BODY,
 	CMD_SEND_BULLET_DATA_STREAM,
@@ -141,6 +142,8 @@ enum EnumSharedMemoryServerStatus
 	CMD_STEP_FORWARD_SIMULATION_COMPLETED,
 	CMD_RESET_SIMULATION_COMPLETED,
 	CMD_CAMERA_IMAGE_COMPLETED,
+	CMD_SOFTBODY_DATA_FAILED,
+	CMD_SOFTBODY_DATA_COMPLETED,
 	CMD_CAMERA_IMAGE_FAILED,
 	CMD_BODY_INFO_COMPLETED,
 	CMD_BODY_INFO_FAILED,
@@ -404,6 +407,21 @@ struct b3CameraImageData
 	const unsigned char* m_rgbColorData;  //3*m_pixelWidth*m_pixelHeight bytes
 	const float* m_depthValues;           //m_pixelWidth*m_pixelHeight floats
 	const int* m_segmentationMaskValues;  //m_pixelWidth*m_pixelHeight ints
+};
+
+struct b3SoftBodyData
+{
+	int m_numNodes;
+	const float* m_x; // m_numNodes floats
+	const float* m_y; // m_numNodes floats
+	const float* m_z; // m_numNodes floats
+	int m_numContacts;
+    const float* m_contact_pos_x;
+    const float* m_contact_pos_y;
+    const float* m_contact_pos_z;
+    const float* m_contact_force_x;
+    const float* m_contact_force_y;
+    const float* m_contact_force_z;
 };
 
 struct b3OpenGLVisualizerCameraInfo

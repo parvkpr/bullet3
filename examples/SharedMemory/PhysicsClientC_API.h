@@ -609,6 +609,8 @@ extern "C"
 	///experiments of robots interacting with non-rigid objects (such as btSoftBody)
 	B3_SHARED_API b3SharedMemoryCommandHandle b3LoadClothCommandInit(b3PhysicsClientHandle physClient, const char* fileName, double scale, double mass, const double* position, const double* orientation, int bodyAnchorId, const int* anchors, double collisionMargin);
 	B3_SHARED_API b3SharedMemoryCommandHandle b3ClothParamsCommandInit(b3PhysicsClientHandle physClient, int bodyId, double kLST, double kAST, double kVST, double kVCF, double kDP, double kDG, double kLF, double kPR, double kVC, double kDF, double kMT, double kCHR, double kKHR, double kSHR, double kAHR, int viterations, int piterations, int diterations);
+	B3_SHARED_API b3SharedMemoryCommandHandle b3GetSoftBodyDataCommand(b3PhysicsClientHandle physClient, int bodyId);
+	B3_SHARED_API int b3GetSoftBodyData(b3SharedMemoryStatusHandle statusHandle, struct b3SoftBodyData* data);
 	B3_SHARED_API b3SharedMemoryCommandHandle b3LoadClothPatchCommandInit(b3PhysicsClientHandle physClient, int numX, int numY, const double* corner00, const double* corner10, const double* corner01, const double* corner11, double scale, double mass, const double* position, const double* orientation, const int* bodyAnchorIds, const int* anchors, double collisionMargin);
 	B3_SHARED_API b3SharedMemoryCommandHandle b3LoadSoftBodyCommandInit(b3PhysicsClientHandle physClient, const char* fileName);
 	B3_SHARED_API int b3LoadSoftBodySetScale(b3SharedMemoryCommandHandle commandHandle, double scale);
