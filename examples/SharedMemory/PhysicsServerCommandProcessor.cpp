@@ -8532,18 +8532,35 @@ bool PhysicsServerCommandProcessor::processSendPhysicsParametersCommand(const st
 
 	if (clientCmd.m_updateFlags & SIM_PARAM_UPDATE_GRAVITY)
 	{
-		btVector3 grav(clientCmd.m_physSimParamArgs.m_gravityAcceleration[0],
-					   clientCmd.m_physSimParamArgs.m_gravityAcceleration[1],
-					   clientCmd.m_physSimParamArgs.m_gravityAcceleration[2]);
-		this->m_data->m_dynamicsWorld->setGravity(grav);
+        btVector3 grav(clientCmd.m_physSimParamArgs.m_gravityAcceleration[0],
+                       clientCmd.m_physSimParamArgs.m_gravityAcceleration[1],
+                       clientCmd.m_physSimParamArgs.m_gravityAcceleration[2]);
+        if (clientCmd.m_physSimParamArgs.m_body < 0) {
+            this->m_data->m_dynamicsWorld->setGravity(grav);
 #ifndef SKIP_SOFT_BODY_MULTI_BODY_DYNAMICS_WORLD
-		m_data->m_dynamicsWorld->getWorldInfo().m_gravity = grav;
+            m_data->m_dynamicsWorld->getWorldInfo().m_gravity = grav;
 
 #endif
-		if (m_data->m_verboseOutput)
-		{
-			b3Printf("Updated Gravity: %f,%f,%f", grav[0], grav[1], grav[2]);
-		}
+            if (m_data->m_verboseOutput)
+            {
+                b3Printf("Updated Gravity: %f,%f,%f", grav[0], grav[1], grav[2]);
+            }
+        } else {
+            InternalBodyData* body = m_data->m_bodyHandles.getHandle(clientCmd.m_physSimParamArgs.m_body);
+
+            if (body && body->m_multiBody) {
+                btMultiBody* mb = body->m_multiBody;
+                mb->setGravity(grav);
+            } else if (body && body->m_rigidBody) {
+                btRigidBody* rb = body->m_rigidBody;
+                rb->setGravity(grav);
+            }
+
+            if (m_data->m_verboseOutput)
+            {
+                b3Printf("Updated Gravity of body: %f,%f,%f", grav[0], grav[1], grav[2]);
+            }
+        }
 	}
 	if (clientCmd.m_updateFlags & SIM_PARAM_UPDATE_NUM_SOLVER_ITERATIONS)
 	{

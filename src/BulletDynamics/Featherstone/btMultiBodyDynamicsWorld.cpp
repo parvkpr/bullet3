@@ -455,12 +455,22 @@ void btMultiBodyDynamicsWorld::solveConstraints(btContactSolverInfo& solverInfo)
 				m_scratch_v.resize(bod->getNumLinks() + 1);
 				m_scratch_m.resize(bod->getNumLinks() + 1);
 
-				bod->addBaseForce(m_gravity * bod->getBaseMass());
+                btVector3 grav = bod->getGravity();
+                if (grav[0] == -1.01 && grav[1] == -1.01 && grav[2] == -1.01) {
+                    bod->addBaseForce(m_gravity * bod->getBaseMass());
 
-				for (int j = 0; j < bod->getNumLinks(); ++j)
-				{
-					bod->addLinkForce(j, m_gravity * bod->getLinkMass(j));
-				}
+                    for (int j = 0; j < bod->getNumLinks(); ++j)
+                    {
+                        bod->addLinkForce(j, m_gravity * bod->getLinkMass(j));
+                    }
+                } else {
+                    bod->addBaseForce(grav * bod->getBaseMass());
+
+                    for (int j = 0; j < bod->getNumLinks(); ++j)
+                    {
+                        bod->addLinkForce(j, grav * bod->getLinkMass(j));
+                    }
+                }
 			}  //if (!isSleeping)
 		}
 	}
@@ -905,12 +915,22 @@ void btMultiBodyDynamicsWorld::applyGravity()
 
 		if (!isSleeping)
 		{
-			bod->addBaseForce(m_gravity * bod->getBaseMass());
+            btVector3 grav = bod->getGravity();
+            if (grav[0] == -1.01 && grav[1] == -1.01 && grav[2] == -1.01) {
+                bod->addBaseForce(m_gravity * bod->getBaseMass());
 
-			for (int j = 0; j < bod->getNumLinks(); ++j)
-			{
-				bod->addLinkForce(j, m_gravity * bod->getLinkMass(j));
-			}
+                for (int j = 0; j < bod->getNumLinks(); ++j)
+                {
+                    bod->addLinkForce(j, m_gravity * bod->getLinkMass(j));
+                }
+            } else {
+                bod->addBaseForce(grav * bod->getBaseMass());
+
+                for (int j = 0; j < bod->getNumLinks(); ++j)
+                {
+                    bod->addLinkForce(j, grav * bod->getLinkMass(j));
+                }
+            }
 		}  //if (!isSleeping)
 	}
 #endif  //BT_USE_VIRTUAL_CLEARFORCES_AND_GRAVITY

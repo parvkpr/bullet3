@@ -12,7 +12,8 @@ cd bullet3/build3
 cd gmake
 make test_vhacd
 ../../bin/test_vhacd_gmake_x64_release
-testVHACD.exe --input bunny.obj --output bunny_vhacd.obj --resolution 10000000
+testVHACD.exe --input bunny.obj --output bunny_vhacd.obj --resolution 10000000 # Windows
+bin/test_vhacd_gmake_x64_release --input bunny.obj --output bunny_vhacd.obj --resolution 10000000 # Unix
 ```
 
 # Bullet Physics SDK

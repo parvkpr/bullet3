@@ -923,6 +923,7 @@ struct b3PhysicsSimulationParameters
 	double m_deltaTime;
         double m_simulationTimestamp;  // Output only timestamp of simulation.
 	double m_gravityAcceleration[3];
+	int m_body;
 	int m_numSimulationSubSteps;
 	int m_numSolverIterations;
 	int m_useRealTimeSimulation;

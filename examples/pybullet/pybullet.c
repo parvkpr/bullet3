@@ -3263,14 +3263,15 @@ static PyObject* pybullet_setGravity(PyObject* self, PyObject* args, PyObject* k
 		double gravX = 0.0;
 		double gravY = 0.0;
 		double gravZ = -10.0;
+		int body = -1;
 		int ret;
 		b3PhysicsClientHandle sm = 0;
 		b3SharedMemoryCommandHandle command;
 		b3SharedMemoryStatusHandle statusHandle;
 
 		int physicsClientId = 0;
-		static char* kwlist[] = {"gravX", "gravY", "gravZ", "physicsClientId", NULL};
-		if (!PyArg_ParseTupleAndKeywords(args, keywds, "ddd|i", kwlist, &gravX, &gravY, &gravZ, &physicsClientId))
+		static char* kwlist[] = {"gravX", "gravY", "gravZ", "body", "physicsClientId", NULL};
+		if (!PyArg_ParseTupleAndKeywords(args, keywds, "ddd|ii", kwlist, &gravX, &gravY, &gravZ, &body, &physicsClientId))
 		{
 			return NULL;
 		}
@@ -3283,7 +3284,7 @@ static PyObject* pybullet_setGravity(PyObject* self, PyObject* args, PyObject* k
 
 		command = b3InitPhysicsParamCommand(sm);
 
-		ret = b3PhysicsParamSetGravity(command, gravX, gravY, gravZ);
+		ret = b3PhysicsParamSetGravity(command, gravX, gravY, gravZ, body);
 		// ret = b3PhysicsParamSetTimeStep(command,  timeStep);
 		statusHandle = b3SubmitClientCommandAndWaitStatus(sm, command);
 		// ASSERT_EQ(b3GetStatusType(statusHandle), CMD_CLIENT_COMMAND_COMPLETED);
@@ -10695,8 +10696,8 @@ static PyMethodDef SpamMethods[] = {
 	 "Step the simulation using forward dynamics."},
 
 	{"setGravity", (PyCFunction)pybullet_setGravity, METH_VARARGS | METH_KEYWORDS,
-	 "setGravity(gravX, gravY, gravZ, physicsClientId=0)\n"
-	 "Set the gravity acceleration (x,y,z)."},
+	 "setGravity(gravX, gravY, gravZ, body, physicsClientId=0)\n"
+	 "Set the gravity acceleration (x,y,z) for the world, or for a specific body."},
 
 	{"setTimeStep", (PyCFunction)pybullet_setTimeStep, METH_VARARGS | METH_KEYWORDS,
 	 "setTimeStep(timestep, physicsClientId=0)\n"

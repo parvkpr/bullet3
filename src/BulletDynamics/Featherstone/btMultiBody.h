@@ -182,6 +182,12 @@ public:
 	// get/set pos/vel/rot/omega for the base link
 	//
 
+	const btVector3 getGravity() const { return m_gravity; }
+	void setGravity(const btVector3 &gravity)
+	{
+		m_gravity = gravity;
+	}
+
 	const btVector3 &getBasePos() const 
 	{ 
 		return m_basePos; 
@@ -704,6 +710,8 @@ private:
 	bool m_cachedInertiaValid;
 
 	bool m_fixedBase;
+
+    btVector3 m_gravity;
 
 	// Sleep parameters.
 	bool m_awake;
