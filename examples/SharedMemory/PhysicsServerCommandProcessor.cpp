@@ -46,6 +46,7 @@
 #include "Bullet3Common/b3Logging.h"
 #include "../CommonInterfaces/CommonGUIHelperInterface.h"
 #include "SharedMemoryCommands.h"
+#include "PhysicsClientC_API.h"
 #include "LinearMath/btRandom.h"
 #include "Bullet3Common/b3ResizablePool.h"
 #include "../Utils/b3Clock.h"
@@ -116,6 +117,11 @@ btTransform gVRTrackingObjectTr = btTransform::getIdentity();
 
 btVector3 gVRTeleportPos1(0, 0, 0);
 btQuaternion gVRTeleportOrn(0, 0, 0, 1);
+btVector3 gVRTeleportPos1_init(0, 0, 0);
+btQuaternion gVRTeleportOrn_init(0, 0, 0, 1);
+btVector3 gVRTeleportPos1_prev(0, 0, 0);
+btQuaternion gVRTeleportOrn_prev(0, 0, 0, 1);
+bool startTeleport = 0;
 
 btScalar simTimeScalingFactor = 1;
 btScalar gRhsClamp = 1.f;
@@ -556,6 +562,7 @@ struct CommandLogPlayback
 	{
 //for a little while, keep this flag to be able to read 'old' log files
 //#define BACKWARD_COMPAT
+		//printf(cmd.m_type);
 #if BACKWARD_COMPAT
 		SharedMemoryCommand unused;
 #endif  //BACKWARD_COMPAT
@@ -1023,6 +1030,7 @@ struct b3VRControllerEvents
 	void addNewVREvents(const struct b3VRControllerEvent* vrEvents, int numVREvents)
 	{
 		//update m_vrEvents
+		// printf("addNewVREvents");
 		for (int i = 0; i < numVREvents; i++)
 		{
 			int controlledId = vrEvents[i].m_controllerId;
@@ -5094,6 +5102,8 @@ bool PhysicsServerCommandProcessor::processSetVRCameraStateCommand(const struct 
 		gVRTeleportOrn[3] = clientCmd.m_vrCameraStateArguments.m_rootOrientation[3];
 	}
 
+
+
 	if (clientCmd.m_updateFlags & VR_CAMERA_ROOT_TRACKING_OBJECT)
 	{
 		gVRTrackingObjectUniqueId = clientCmd.m_vrCameraStateArguments.m_trackingObjectUniqueId;
@@ -5110,6 +5120,7 @@ bool PhysicsServerCommandProcessor::processSetVRCameraStateCommand(const struct 
 
 bool PhysicsServerCommandProcessor::processRequestVREventsCommand(const struct SharedMemoryCommand& clientCmd, struct SharedMemoryStatus& serverStatusOut, char* bufferServerToClient, int bufferSizeInBytes)
 {
+	printf("processRequestVREventsCommand\n");
 	bool hasStatus = true;
 	//BT_PROFILE("CMD_REQUEST_VR_EVENTS_DATA");
 	serverStatusOut.m_sendVREvents.m_numVRControllerEvents = 0;
@@ -5117,6 +5128,149 @@ bool PhysicsServerCommandProcessor::processRequestVREventsCommand(const struct S
 	for (int i = 0; i < MAX_VR_CONTROLLERS; i++)
 	{
 		b3VRControllerEvent& event = m_data->m_vrControllerEvents.m_vrEvents[i];
+
+		if (clientCmd.m_updateFlags & event.m_deviceType)
+		{
+			if (event.m_numButtonEvents + event.m_numMoveEvents)
+			{
+				serverStatusOut.m_sendVREvents.m_controllerEvents[serverStatusOut.m_sendVREvents.m_numVRControllerEvents++] = event;
+				event.m_numButtonEvents = 0;
+				event.m_numMoveEvents = 0;
+				for (int b = 0; b < MAX_VR_BUTTONS; b++)
+				{
+					event.m_buttons[b] = 0;
+				}
+			}
+		}
+	}
+	serverStatusOut.m_type = CMD_REQUEST_VR_EVENTS_DATA_COMPLETED;
+	return hasStatus;
+}
+
+bool PhysicsServerCommandProcessor::processRequestAndSetVREventsCommand(const struct SharedMemoryCommand& clientCmd, struct SharedMemoryStatus& serverStatusOut, char* bufferServerToClient, int bufferSizeInBytes)
+{
+	printf("processRequestVREventsCommandinit\n");
+	bool hasStatus = true;
+	//BT_PROFILE("CMD_REQUEST_VR_EVENTS_DATA");
+	serverStatusOut.m_sendVREvents.m_numVRControllerEvents = 0;
+
+	for (int i = 0; i < MAX_VR_CONTROLLERS; i++)
+	{
+		b3VRControllerEvent& event = m_data->m_vrControllerEvents.m_vrEvents[i];
+		if (i==0)
+		{
+			// if (startTeleport == 0){
+			// 	startTeleport = 1;
+			// }
+			// else{
+			// 	gVRTeleportPos1_prev[0] = gVRTeleportPos1_init[0];
+			// 	gVRTeleportPos1_prev[1] = gVRTeleportPos1_init[1];
+			// 	gVRTeleportPos1_prev[2] = gVRTeleportPos1_init[2];
+
+			// 	gVRTeleportOrn_prev[0] = gVRTeleportOrn_init[0]; 
+			// 	gVRTeleportOrn_prev[1] = gVRTeleportOrn_init[1];
+			// 	gVRTeleportOrn_prev[2] = gVRTeleportOrn_init[2];
+			// 	gVRTeleportOrn_prev[3] = gVRTeleportOrn_init[3];
+			// }
+
+			btTransform trTotal_init;
+			trTotal_init.setOrigin(btVector3(event.m_pos[0], event.m_pos[1], event.m_pos[2]));
+			trTotal_init.setRotation(btQuaternion(event.m_orn[0], event.m_orn[1], event.m_orn[2], event.m_orn[3]));
+
+
+			btTransform tr2a_init;
+			tr2a_init.setIdentity();
+			btTransform tr2_init;
+			tr2_init.setIdentity();
+			tr2_init.setOrigin(gVRTeleportPos1_init);
+			tr2a_init.setRotation(gVRTeleportOrn_init);
+
+			btTransform tr2a;
+			tr2a.setIdentity();
+			btTransform tr2;
+			tr2.setIdentity();
+			tr2.setOrigin(gVRTeleportPos1);
+			tr2a.setRotation(gVRTeleportOrn);
+
+			btTransform tr2a_transform = tr2a * tr2a_init.inverse();
+			btTransform tr2_transform = tr2 * tr2_init.inverse();
+
+			btTransform trTotal = tr2_transform * tr2a_transform * trTotal_init;
+
+
+			
+			printf("EventVRTeleportPosition");
+			printf("PosX=%f\n", event.m_pos[0]);
+			printf("PosY=%f\n", event.m_pos[1]);
+			printf("PosZ=%f\n", event.m_pos[2]);
+
+			printf("EventVRTeleportPosition");
+			printf("OrientRoll=%f\n", event.m_orn[0]);
+			printf("OrientPitch=%f\n", event.m_orn[1]);
+			printf("OrientYaw=%f\n", event.m_orn[2]);
+			printf("OrientYaw=%f\n", event.m_orn[3]);
+
+			printf("OffsetVRTeleportPosition");
+			printf("PosX=%f\n", clientCmd.m_CameraOffsetArguments.m_PosOffset[0]);
+			printf("PosY=%f\n", clientCmd.m_CameraOffsetArguments.m_PosOffset[1]);
+			printf("PosZ=%f\n", clientCmd.m_CameraOffsetArguments.m_PosOffset[2]);
+
+			double pos[3];
+			pos[0] = -trTotal.getOrigin()[0];
+			pos[1] = -trTotal.getOrigin()[1];
+			pos[2] = -trTotal.getOrigin()[2];
+
+			if (clientCmd.m_updateFlags & VR_CAMERA_ROOT_POSITION)
+			{
+				pos[0] -= clientCmd.m_CameraOffsetArguments.m_PosOffset[0];
+				pos[1] -= clientCmd.m_CameraOffsetArguments.m_PosOffset[1];
+				pos[2] -= clientCmd.m_CameraOffsetArguments.m_PosOffset[2];
+			}
+
+			double orn[4];
+			btQuaternion prevQuat = btQuaternion(trTotal.getRotation()[0], trTotal.getRotation()[1], trTotal.getRotation()[2], trTotal.getRotation()[3]);
+			btScalar roll, pitch, yaw;
+			prevQuat.getEulerZYX(yaw, pitch, roll);
+			btQuaternion prevOrient;
+			prevOrient.setEulerZYX(-(yaw-3.141592653589793), 0, 0);
+			// prevOrient.setEulerZYX(0, 0, 0);
+			orn[0] = prevOrient[0];
+			orn[1] = prevOrient[1];
+			orn[2] = prevOrient[2];
+			orn[3] = prevOrient[3];
+
+
+			// if (clientCmd.m_updateFlags & VR_CAMERA_ROOT_ORIENTATION)
+			// {
+			// 	orn[0] = clientCmd.m_CameraOffsetArguments.m_OrnOffset[0];
+			// 	orn[1] = clientCmd.m_CameraOffsetArguments.m_OrnOffset[1];
+			// 	orn[2] = clientCmd.m_CameraOffsetArguments.m_OrnOffset[2];
+			// 	orn[3] = clientCmd.m_CameraOffsetArguments.m_OrnOffset[3];
+			// }
+			
+			gVRTeleportPos1_init[0] = pos[0];
+			gVRTeleportPos1_init[1] = pos[1];
+			gVRTeleportPos1_init[2] = pos[2];
+
+			gVRTeleportOrn_init[0] = orn[0]; 
+			gVRTeleportOrn_init[1] = orn[1];
+			gVRTeleportOrn_init[2] = orn[2];
+			gVRTeleportOrn_init[3] = orn[3];
+
+			// btQuaternion tempOrient(gVRTeleportOrn_init[0], gVRTeleportOrn_init[1], gVRTeleportOrn_init[2], gVRTeleportOrn_init[3]);
+			// tempOrient.getEulerZYX(yaw, pitch, roll);
+
+			printf("InitVRTeleportPosition");
+			printf("PosX=%f\n", gVRTeleportPos1_init[0]);
+			printf("PosY=%f\n", gVRTeleportPos1_init[1]);
+			printf("PosZ=%f\n", gVRTeleportPos1_init[2]);
+
+
+			printf("InitVRTeleportPosition");
+			printf("OrientRoll=%f\n", roll);
+			printf("OrientPitch=%f\n", pitch);
+			printf("OrientYaw=%f\n", yaw);
+		}
 
 		if (clientCmd.m_updateFlags & event.m_deviceType)
 		{
@@ -8706,6 +8860,7 @@ bool PhysicsServerCommandProcessor::processSendPhysicsParametersCommand(const st
 
 bool PhysicsServerCommandProcessor::processInitPoseCommand(const struct SharedMemoryCommand& clientCmd, struct SharedMemoryStatus& serverStatusOut, char* bufferServerToClient, int bufferSizeInBytes)
 {
+	// printf("initialize pose");
 	bool hasStatus = true;
 
 	BT_PROFILE("CMD_INIT_POSE");
@@ -8732,7 +8887,9 @@ bool PhysicsServerCommandProcessor::processInitPoseCommand(const struct SharedMe
 							clientCmd.m_initPoseArgs.m_initialStateQdot[4],
 							clientCmd.m_initPoseArgs.m_initialStateQdot[5]);
 	}
+	
 	btVector3 basePos(0, 0, 0);
+
 	if (clientCmd.m_updateFlags & INIT_POSE_HAS_INITIAL_POSITION)
 	{
 		basePos = btVector3(
@@ -8741,6 +8898,7 @@ bool PhysicsServerCommandProcessor::processInitPoseCommand(const struct SharedMe
 			clientCmd.m_initPoseArgs.m_initialStateQ[2]);
 	}
 	btQuaternion baseOrn(0, 0, 0, 1);
+
 	if (clientCmd.m_updateFlags & INIT_POSE_HAS_INITIAL_ORIENTATION)
 	{
 		baseOrn.setValue(clientCmd.m_initPoseArgs.m_initialStateQ[3],
@@ -11355,6 +11513,11 @@ bool PhysicsServerCommandProcessor::processCommand(const struct SharedMemoryComm
 			hasStatus = processRequestVREventsCommand(clientCmd, serverStatusOut, bufferServerToClient, bufferSizeInBytes);
 			break;
 		};
+		case CMD_REQUEST_AND_SET_VR_EVENTS_DATA:
+		{
+			hasStatus = processRequestAndSetVREventsCommand(clientCmd, serverStatusOut, bufferServerToClient, bufferSizeInBytes);
+			break;
+		};
 		case CMD_REQUEST_MOUSE_EVENTS_DATA:
 		{
 			hasStatus = processRequestMouseEventsCommand(clientCmd, serverStatusOut, bufferServerToClient, bufferSizeInBytes);
@@ -12175,16 +12338,51 @@ void PhysicsServerCommandProcessor::setTimeOut(double /*timeOutInSeconds*/)
 
 const btVector3& PhysicsServerCommandProcessor::getVRTeleportPosition() const
 {
+	// printf("getVRTeleportPosition");
+	// printf("PosX=%f\n", gVRTeleportPos1[0]);
+	// printf("PosY=%f\n", gVRTeleportPos1[1]);
+	// printf("PosZ=%f\n", gVRTeleportPos1[2]);
 	return gVRTeleportPos1;
 }
+
+const btVector3& PhysicsServerCommandProcessor::getVRTeleportPosition_init() const
+{
+	// printf("getVRTeleportPosition");
+	// printf("PosX=%f\n", gVRTeleportPos1[0]);
+	// printf("PosY=%f\n", gVRTeleportPos1[1]);
+	// printf("PosZ=%f\n", gVRTeleportPos1[2]);
+	return gVRTeleportPos1_init;
+}
+
+const btVector3& PhysicsServerCommandProcessor::getVRTeleportPosition_prev() const
+{
+	printf("getVRTeleportPosition PREVIOUS");
+	printf("PosX=%f\n", gVRTeleportPos1_prev[0]);
+	printf("PosY=%f\n", gVRTeleportPos1_prev[1]);
+	printf("PosZ=%f\n", gVRTeleportPos1_prev[2]);
+	return gVRTeleportPos1_prev;
+}
+
 void PhysicsServerCommandProcessor::setVRTeleportPosition(const btVector3& vrTeleportPos)
 {
 	gVRTeleportPos1 = vrTeleportPos;
 }
+
 const btQuaternion& PhysicsServerCommandProcessor::getVRTeleportOrientation() const
 {
 	return gVRTeleportOrn;
 }
+
+const btQuaternion& PhysicsServerCommandProcessor::getVRTeleportOrientation_init() const
+{
+	return gVRTeleportOrn_init;
+}
+
+const btQuaternion& PhysicsServerCommandProcessor::getVRTeleportOrientation_prev() const
+{
+	return gVRTeleportOrn_prev;
+}
+
 void PhysicsServerCommandProcessor::setVRTeleportOrientation(const btQuaternion& vrTeleportOrn)
 {
 	gVRTeleportOrn = vrTeleportOrn;

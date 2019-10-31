@@ -134,6 +134,7 @@ public:
 
 	virtual void render(const btDiscreteDynamicsWorld* rbWorld)
 	{
+		printf("render here????");
 		OpenGLGuiHelper::render(rbWorld);
 
 		//clear the color buffer

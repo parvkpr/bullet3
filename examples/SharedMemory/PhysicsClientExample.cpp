@@ -412,7 +412,7 @@ void PhysicsClientExample::prepareAndSubmitCommand(int commandId)
 		case CMD_CUSTOM_SET_GRAVITY:
 		{
 			b3SharedMemoryCommandHandle commandHandle = b3InitPhysicsParamCommand(m_physicsClientHandle);
-			b3PhysicsParamSetGravity(commandHandle, 0.0, 0.0, -9.8);
+			b3PhysicsParamSetGravity(commandHandle, 0.0, 0.0, -9.8, -1.0);
 			b3SubmitClientCommand(m_physicsClientHandle, commandHandle);
 			break;
 		}

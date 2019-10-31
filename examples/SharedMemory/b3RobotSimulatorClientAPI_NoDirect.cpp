@@ -1018,6 +1018,7 @@ void b3RobotSimulatorClientAPI_NoDirect::configureDebugVisualizer(b3ConfigureDeb
 
 void b3RobotSimulatorClientAPI_NoDirect::getVREvents(b3VREventsData* vrEventsData, int deviceTypeFilter)
 {
+	b3Printf("getvrevents\n");
 	vrEventsData->m_numControllerEvents = 0;
 	vrEventsData->m_controllerEvents = 0;
 	if (!isConnected())
@@ -1031,6 +1032,28 @@ void b3RobotSimulatorClientAPI_NoDirect::getVREvents(b3VREventsData* vrEventsDat
 	b3SubmitClientCommandAndWaitStatus(m_data->m_physicsClientHandle, commandHandle);
 	b3GetVREventsData(m_data->m_physicsClientHandle, vrEventsData);
 }
+
+void b3RobotSimulatorClientAPI_NoDirect::setOriginCameraPositionAndOrientation(b3VREventsData* vrEventsData, int deviceTypeFilter, double pos_offset[3], double orn_offset[4])
+{
+	b3Printf("b3RobotSimulatorClientAPI_NoDirect::setOriginCameraPositionAndOrientation\n");
+	vrEventsData->m_numControllerEvents = 0;
+	vrEventsData->m_controllerEvents = 0;
+
+	if (!isConnected())
+	{
+		b3Warning("Not connected");
+		return;
+	}
+
+	b3SharedMemoryCommandHandle commandHandle = b3RequestAndSetVREventsCommandInit(m_data->m_physicsClientHandle);
+	b3VREventsSetDeviceTypeFilter(commandHandle, deviceTypeFilter);
+	// b3SetVRCameraPositionOffset(commandHandle, pos_offset);
+	// b3SetVRCameraOrientationOffset(commandHandle, orn_offset);
+	b3SubmitClientCommandAndWaitStatus(m_data->m_physicsClientHandle, commandHandle);
+	b3GetVREventsData(m_data->m_physicsClientHandle, vrEventsData);
+}
+
+
 
 void b3RobotSimulatorClientAPI_NoDirect::getKeyboardEvents(b3KeyboardEventsData* keyboardEventsData)
 {

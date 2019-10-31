@@ -931,6 +931,12 @@ enum eVRCameraEnums
 	VR_CAMERA_FLAG = 8,
 };
 
+enum eCameraOffsetEnums
+{
+	VR_CAMERA_POSITION_OFFSET = 1,
+	VR_CAMERA_ORIENTATION_OFFSET = 2,
+};
+
 enum eStateLoggingEnums
 {
 	STATE_LOGGING_START_LOG = 1,
@@ -951,6 +957,12 @@ struct VRCameraState
 	double m_rootOrientation[4];
 	int m_trackingObjectUniqueId;
 	int m_trackingObjectFlag;
+};
+
+struct CameraOffset
+{
+	double m_PosOffset[3];
+	double m_OrnOffset[4];
 };
 
 struct StateLoggingRequest
@@ -1174,6 +1186,9 @@ struct SharedMemoryCommand
 		struct LoadClothPatchArgs m_loadClothPatchArguments;
 		struct LoadSoftBodyArgs m_loadSoftBodyArguments;
 		struct VRCameraState m_vrCameraStateArguments;
+
+		struct CameraOffset m_CameraOffsetArguments;
+		
 		struct StateLoggingRequest m_stateLoggingArguments;
 		struct ConfigureOpenGLVisualizerRequest m_configureOpenGLVisualizerArguments;
 		struct b3ObjectArgs m_removeObjectArgs;

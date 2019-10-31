@@ -2,6 +2,8 @@
 
 #include "PhysicsClientSharedMemory.h"
 
+#include <stdio.h>
+
 B3_SHARED_API b3PhysicsClientHandle b3ConnectSharedMemory(int key)
 {
 	PhysicsClientSharedMemory* cl = new PhysicsClientSharedMemory();

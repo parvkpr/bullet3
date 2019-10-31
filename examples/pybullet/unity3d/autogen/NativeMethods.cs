@@ -3482,6 +3482,11 @@ public static extern  int b3LoadSoftBodySetCollisionMargin(IntPtr commandHandle,
     [System.Runtime.InteropServices.DllImportAttribute(dllName, EntryPoint="b3RequestVREventsCommandInit")]
 public static extern  System.IntPtr b3RequestVREventsCommandInit(IntPtr physClient) ;
 
+    /// Return Type: b3SharedMemoryCommandHandle->b3SharedMemoryCommandHandle__*
+    ///physClient: b3PhysicsClientHandle->b3PhysicsClientHandle__*
+    [System.Runtime.InteropServices.DllImportAttribute(dllName, EntryPoint="b3RequestAndSetVREventsCommandInit")]
+public static extern  System.IntPtr b3RequestAndSetVREventsCommandInit(IntPtr physClient) ;
+
     
     /// Return Type: void
     ///commandHandle: b3SharedMemoryCommandHandle->b3SharedMemoryCommandHandle__*
@@ -3496,7 +3501,19 @@ public static extern  void b3VREventsSetDeviceTypeFilter(IntPtr commandHandle, i
     [System.Runtime.InteropServices.DllImportAttribute(dllName, EntryPoint="b3GetVREventsData")]
 public static extern  void b3GetVREventsData(IntPtr physClient, ref b3VREventsData vrEventsData) ;
 
+    /// Return Type: void
+    ///commandHandle: b3SharedMemoryCommandHandle->b3SharedMemoryCommandHandle__*
+    ///pos_offset: double*
+    [System.Runtime.InteropServices.DllImportAttribute(dllName, EntryPoint="b3SetVRCameraPositionOffset")]
+public static extern  void b3SetVRCameraPositionOffset(IntPtr commandHandle, ref double pos_offset) ;
+
     
+    /// Return Type: void
+    ///commandHandle: b3SharedMemoryCommandHandle->b3SharedMemoryCommandHandle__*
+    ///orn_offset: double*
+    [System.Runtime.InteropServices.DllImportAttribute(dllName, EntryPoint="b3SetVRCameraOrientationOffset")]
+public static extern  void b3SetVRCameraOrientationOffset(IntPtr commandHandle, ref double orn_offset) ;    
+
     /// Return Type: b3SharedMemoryCommandHandle->b3SharedMemoryCommandHandle__*
     ///physClient: b3PhysicsClientHandle->b3PhysicsClientHandle__*
     [System.Runtime.InteropServices.DllImportAttribute(dllName, EntryPoint="b3SetVRCameraStateCommandInit")]

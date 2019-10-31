@@ -431,7 +431,6 @@ bool CMainApplication::BInit()
 	SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, 0 );
 	if( m_bDebugOpenGL )
 		SDL_GL_SetAttribute( SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG );
-
 	*/
 
 	m_app = new SimpleOpenGL3App("SimpleOpenGL3App", m_nWindowWidth, m_nWindowHeight, true, maxNumObjectCapacity, maxShapeCapacityInBytes);
@@ -485,15 +484,11 @@ bool CMainApplication::BInit()
 		printf( "%s - OpenGL context could not be created! SDL Error: %s\n", __FUNCTION__, SDL_GetError() );
 		return false;
 	}
-
-
-
 	if ( SDL_GL_SetSwapInterval( m_bVblank ? 1 : 0 ) < 0 )
 	{
 		printf( "%s - Warning: Unable to set VSync! SDL Error: %s\n", __FUNCTION__, SDL_GetError() );
 		return false;
 	}
-
 		*/
 	m_strDriver = "No Driver";
 	m_strDisplay = "No Display";
@@ -543,7 +538,6 @@ bool CMainApplication::BInit()
 {
 	b3Printf( "GL Error: %s\n", message );
 }
-
 static void APIENTRY DebugCallback (GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, GLvoid* userParam)
 {
 	b3Printf( "GL Error: %s\n", message );
@@ -676,6 +670,15 @@ void CMainApplication::Shutdown()
 void CMainApplication::getControllerTransform(int unDevice, b3Transform &tr)
 {
 	const Matrix4 &matOrg = m_rmat4DevicePose[unDevice];
+	// printf("!!camPosX=%f\n", matOrg[12]);
+	// printf("!!camPosY=%f\n", matOrg[13]);
+	// printf("!!camPosZ=%f\n", matOrg[14]);
+
+	// printf("!!camRotX=%f\n", m_args[0].m_vrControllerEvents[controllerId].m_orn[0]);
+	// printf("!!camRotY=%f\n", m_args[0].m_vrControllerEvents[controllerId].m_orn[1]);
+	// printf("!!camRotZ=%f\n", m_args[0].m_vrControllerEvents[controllerId].m_orn[2]);
+	// printf("!!camRotW=%f\n", m_args[0].m_vrControllerEvents[controllerId].m_orn[3]);
+
 	tr.setIdentity();
 	tr.setOrigin(b3MakeVector3(matOrg[12], matOrg[13], matOrg[14]));  //pos[1]));
 	b3Matrix3x3 bmat;
@@ -819,7 +822,6 @@ bool CMainApplication::HandleInput()
 
 	return bRet;
 }
-
 //-----------------------------------------------------------------------------
 // Purpose:
 //-----------------------------------------------------------------------------
@@ -1792,6 +1794,7 @@ void CMainApplication::RenderStereoTargets()
 
 	//m_app->drawGrid(gridUp);
 
+	m_app->m_instancingRenderer->setRenderFrameBuffer(0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glDisable(GL_MULTISAMPLE);
@@ -2276,8 +2279,17 @@ int main(int argc, char *argv[])
 		char *t0 = (char *)"--robotassets";
 		newargv[0] = t0;
 		newargv[1] = t0;
+		// pMainApplication->RenderFrame();
+		// bool bset = pMainApplication->HandleFirstInput();
+		// pMainApplication->RenderFrame();
 		sExample->processCommandLineArgs(2, newargv);
 		sExample->processCommandLineArgs(argc, argv);
+		// }
+		// else
+		// {
+		// 	pMainApplication->Shutdown();
+		// 	return 1;
+		// }
 	}
 
 	char *gVideoFileName = 0;

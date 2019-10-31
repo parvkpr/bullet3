@@ -161,6 +161,7 @@ struct TinyRendererGUIHelper : public GUIHelperInterface
 
 	virtual void render(const btDiscreteDynamicsWorld* rbWorld)
 	{
+		printf("render here?");
 		//clear the color buffer
 		TGAColor clearColor;
 		clearColor.bgra[0] = 255;

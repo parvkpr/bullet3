@@ -618,9 +618,15 @@ extern "C"
 	B3_SHARED_API int b3LoadSoftBodySetCollisionMargin(b3SharedMemoryCommandHandle commandHandle, double collisionMargin);
 
 	B3_SHARED_API b3SharedMemoryCommandHandle b3RequestVREventsCommandInit(b3PhysicsClientHandle physClient);
+	
+	B3_SHARED_API b3SharedMemoryCommandHandle b3RequestAndSetVREventsCommandInit(b3PhysicsClientHandle physClient);
 	B3_SHARED_API void b3VREventsSetDeviceTypeFilter(b3SharedMemoryCommandHandle commandHandle, int deviceTypeFilter);
-
 	B3_SHARED_API void b3GetVREventsData(b3PhysicsClientHandle physClient, struct b3VREventsData* vrEventsData);
+	
+	B3_SHARED_API void b3SetVRCameraPositionOffset(b3SharedMemoryCommandHandle commandHandle, const double pos_offset[/*3*/]);
+	
+	B3_SHARED_API void b3SetVRCameraOrientationOffset(b3SharedMemoryCommandHandle commandHandle, const double orn_offset[/*4*/]);
+
 
 	B3_SHARED_API b3SharedMemoryCommandHandle b3SetVRCameraStateCommandInit(b3PhysicsClientHandle physClient);
 	B3_SHARED_API int b3SetVRCameraRootPosition(b3SharedMemoryCommandHandle commandHandle, const double rootPos[/*3*/]);

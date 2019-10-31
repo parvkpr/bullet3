@@ -28,6 +28,7 @@ InProcessMemory::~InProcessMemory()
 
 void* InProcessMemory::allocateSharedMemory(int key, int size, bool allowCreation)
 {
+	printf("InProcessMemory::allocateSharedMemory");
 	void** ptrptr = m_data->m_memoryPointers[key];
 	if (ptrptr)
 	{
