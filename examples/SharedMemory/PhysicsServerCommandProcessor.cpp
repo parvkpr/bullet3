@@ -232,6 +232,9 @@ struct SharedMemoryDebugDrawer : public btIDebugDraw
 		line.m_color = color;
 		m_lines2.push_back(line);
 	}
+	virtual void drawTriangles(const btVector3& v0, const btVector3& v1, const btVector3& v2, const btVector4& color, const btVector4& colorLine)
+	{
+	}
 };
 
 struct InternalVisualShapeData
@@ -7490,11 +7493,12 @@ bool PhysicsServerCommandProcessor::processLoadClothCommand(const struct SharedM
                 }
                 psb->appendAnchor(loadClothArgs.m_anchors[i], bodyRigid, disableCollisionBetweenLinkedBodies, influence);
             }
-
-            m_data->m_dynamicsWorld->addSoftBody(psb);
+            psb->setSoftBodyColor(btVector4(loadClothArgs.m_colorRGBA[0], loadClothArgs.m_colorRGBA[1], loadClothArgs.m_colorRGBA[2], loadClothArgs.m_colorRGBA[3]));
+            psb->setSoftBodyLineColor(btVector4(loadClothArgs.m_colorLineRGBA[0], loadClothArgs.m_colorLineRGBA[1], loadClothArgs.m_colorLineRGBA[2], loadClothArgs.m_colorLineRGBA[3]));
+			m_data->m_dynamicsWorld->addSoftBody(psb);
             m_data->m_guiHelper->createCollisionShapeGraphicsObject(psb->getCollisionShape());
-            m_data->m_guiHelper->autogenerateGraphicsObjects(this->m_data->m_dynamicsWorld);
-            int bodyUniqueId = m_data->m_bodyHandles.allocHandle();
+            m_data->m_guiHelper->autogenerateGraphicsObjects(this->m_data->m_dynamicsWorld);           
+			int bodyUniqueId = m_data->m_bodyHandles.allocHandle();
             InternalBodyHandle* bodyHandle = m_data->m_bodyHandles.getHandle(bodyUniqueId);
             bodyHandle->m_softBody = psb;
             serverStatusOut.m_loadSoftBodyResultArguments.m_objectUniqueId = bodyUniqueId;
@@ -11892,7 +11896,8 @@ void PhysicsServerCommandProcessor::physicsDebugDraw(int debugDrawFlags)
 		if (m_data->m_dynamicsWorld->getDebugDrawer())
 		{
 			m_data->m_dynamicsWorld->getDebugDrawer()->setDebugMode(debugDrawFlags);
-			m_data->m_dynamicsWorld->debugDrawWorld();
+			//m_data->m_dynamicsWorld->debugDrawWorld();
+			m_data->m_dynamicsWorld->debugDraw();
 
 #ifndef SKIP_SOFT_BODY_MULTI_BODY_DYNAMICS_WORLD
 			for (int i = 0; i < m_data->m_dynamicsWorld->getSoftBodyArray().size(); i++)

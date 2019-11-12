@@ -1878,8 +1878,7 @@ static PyObject* pybullet_loadCloth(PyObject* self, PyObject* args, PyObject* ke
 {
 	int physicsClientId = 0;
 
-	static char* kwlist[] = {"fileName", "scale", "mass", "position", "orientation", "bodyAnchorId", "anchors", "collisionMargin", "physicsClientId", NULL};
-
+	static char* kwlist[] = {"fileName", "scale", "mass", "position", "orientation", "bodyAnchorId", "anchors", "collisionMargin", "rgbaColor", "rgbaLineColor", "physicsClientId", NULL};
 	int bodyUniqueId = -1;
 	const char* fileName = "";
 	double scale = 1;
@@ -1892,10 +1891,13 @@ static PyObject* pybullet_loadCloth(PyObject* self, PyObject* args, PyObject* ke
 	PyObject* anchorsObj = 0;
 	int anchorsArray[25];
 	double collisionMargin = 0.01;
-
+	PyObject* rgbaColorObj = 0;
+	double rgbaColorArray[4] = {139. / 256., 195. / 256., 74. / 256.,0.6}; //green
+	PyObject* rgbaLineColorObj = 0;
+	double rgbaLineColorArray[4] = {139. / 256., 195. / 256., 74. / 256.,0.6}; //green
 	b3PhysicsClientHandle sm = 0;
 
-	if (!PyArg_ParseTupleAndKeywords(args, keywds, "s|ddOOiOdi", kwlist, &fileName, &scale, &mass, &positionObj, &orientationObj, &bodyAnchorId, &anchorsObj, &collisionMargin, &physicsClientId))
+	if (!PyArg_ParseTupleAndKeywords(args, keywds, "s|ddOOiOdOOi", kwlist, &fileName, &scale, &mass, &positionObj, &orientationObj, &bodyAnchorId, &anchorsObj, &collisionMargin, &rgbaColorObj, &rgbaLineColorObj, &physicsClientId))
 	{
 		return NULL;
 	}
@@ -1941,11 +1943,35 @@ static PyObject* pybullet_loadCloth(PyObject* self, PyObject* args, PyObject* ke
         anchorsArray[i] = -1;
 	}
 
+	if (rgbaColorObj)
+	{
+		int i = 0;
+		PyObject* rgbaColorSeq = PySequence_Fast(rgbaColorObj, "expected a position sequence");
+		int rgbaColorSize = PySequence_Size(rgbaColorObj);
+		for (i = 0; i < rgbaColorSize; i++)
+		{
+			rgbaColorArray[i] = pybullet_internalGetFloatFromSequence(rgbaColorSeq, i);
+		}
+	}
+
+	if (rgbaLineColorObj)
+	{
+		int i = 0;
+		PyObject* rgbaLineColorSeq = PySequence_Fast(rgbaLineColorObj, "expected a position sequence");
+		int rgbaLineColorSize = PySequence_Size(rgbaLineColorObj);
+		for (i = 0; i < rgbaLineColorSize; i++)
+		{
+			rgbaLineColorArray[i] = pybullet_internalGetFloatFromSequence(rgbaLineColorSeq, i);
+		}
+	}
+
 	if (strlen(fileName))
 	{
 		b3SharedMemoryStatusHandle statusHandle;
 		int statusType;
-		b3SharedMemoryCommandHandle command = b3LoadClothCommandInit(sm, fileName, scale, mass, positionArray, orientationArray, bodyAnchorId, anchorsArray, collisionMargin);
+		b3SharedMemoryCommandHandle command = b3LoadClothCommandInit(sm, fileName, scale, mass, positionArray, orientationArray, bodyAnchorId, anchorsArray, collisionMargin, rgbaColorArray, rgbaLineColorArray);
+		statusHandle = b3SubmitClientCommandAndWaitStatus(sm, command);
+		statusType = b3GetStatusType(statusHandle);
 
 		statusHandle = b3SubmitClientCommandAndWaitStatus(sm, command);
 		statusType = b3GetStatusType(statusHandle);

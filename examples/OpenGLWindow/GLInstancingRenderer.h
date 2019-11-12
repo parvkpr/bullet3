@@ -107,6 +107,7 @@ public:
 	virtual void drawLine(const float from[4], const float to[4], const float color[4], float lineWidth = 1);
 	virtual void drawLine(const double from[4], const double to[4], const double color[4], double lineWidth = 1);
 	virtual void drawLines(const float* positions, const float color[4], int numPoints, int pointStrideInBytes, const unsigned int* indices, int numIndices, float pointDrawSize);
+	virtual void drawLinesC(const float* positions, const float color[4], const float colorLine[4], int numPoints, int pointStrideInBytes, const unsigned int* indices, int numIndices, float pointDrawSize);
 	virtual void drawPoints(const float* positions, const float color[4], int numPoints, int pointStrideInBytes, float pointDrawSize);
 	virtual void drawPoint(const float* position, const float color[4], float pointSize = 1);
 	virtual void drawPoint(const double* position, const double color[4], double pointDrawSize = 1);

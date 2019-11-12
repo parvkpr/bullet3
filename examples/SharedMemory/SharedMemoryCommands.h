@@ -504,18 +504,6 @@ enum EnumSimParamInternalSimFlags
 ///Controlling a robot involves sending the desired state to its joint motor controllers.
 ///The control mode determines the state variables used for motor control.
 
-struct LoadClothArgs
-{
-	char m_fileName[MAX_FILENAME_LENGTH];
-	double m_scale;
-	double m_mass;
-	double m_position[3];
-	double m_orientation[4];
-    int m_bodyAnchorId;
-    int m_anchors[25];
-	double m_collisionMargin;
-};
-
 struct ClothParamsArgs
 {
     int m_bodyId;
@@ -576,6 +564,20 @@ struct LoadClothPatchArgs
     int m_bodyAnchorIds[25];
     int m_anchors[25];
 	double m_collisionMargin;
+};
+
+struct LoadClothArgs
+{
+	char m_fileName[MAX_FILENAME_LENGTH];
+	double m_scale;
+	double m_mass;
+	double m_position[3];
+	double m_orientation[4];
+    int m_bodyAnchorId;
+    int m_anchors[25];
+	double m_collisionMargin;
+	double m_colorRGBA[4];
+	double m_colorLineRGBA[4];
 };
 
 struct LoadSoftBodyArgs

@@ -121,6 +121,7 @@ public:
 		drawLine(v1, v2, color);
 		drawLine(v2, v0, color);
 	}
+	virtual void drawTriangles(const btVector3& v0, const btVector3& v1, const btVector3& v2, const btVector4& color, const btVector4& colorLine) = 0;
 
 	virtual void drawContactPoint(const btVector3& PointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color) = 0;
 

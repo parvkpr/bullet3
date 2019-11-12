@@ -535,6 +535,31 @@ void SimpleOpenGL2Renderer::drawLines(const float* positions, const float color[
 	}
 }
 
+void SimpleOpenGL2Renderer::drawLinesC(const float* positions, const float color[4], const float colorLine[4], int numPoints, int pointStrideInBytes, const unsigned int* indices, int numIndices, float pointDrawSize)
+{
+	int pointStrideInFloats = pointStrideInBytes / 4;
+	glLineWidth(pointDrawSize);
+	for (int i = 0; i < numIndices; i += 2)
+	{
+		int index0 = indices[i];
+		int index1 = indices[i + 1];
+
+		b3Vector3 fromColor = b3MakeVector3(color[0], color[1], color[2]);
+		b3Vector3 toColor = b3MakeVector3(color[0], color[1], color[2]);
+
+		b3Vector3 from = b3MakeVector3(positions[index0 * pointStrideInFloats], positions[index0 * pointStrideInFloats + 1], positions[index0 * pointStrideInFloats + 2]);
+		b3Vector3 to = b3MakeVector3(positions[index1 * pointStrideInFloats], positions[index1 * pointStrideInFloats + 1], positions[index1 * pointStrideInFloats + 2]);
+
+		glBegin(GL_LINES);
+		glColor3f(fromColor.getX(), fromColor.getY(), fromColor.getZ());
+		glVertex3d(from.getX(), from.getY(), from.getZ());
+		glColor3f(toColor.getX(), toColor.getY(), toColor.getZ());
+		glVertex3d(to.getX(), to.getY(), to.getZ());
+		glEnd();
+	}
+}
+
+
 void SimpleOpenGL2Renderer::drawLine(const float from[4], const float to[4], const float color[4], float lineWidth)
 {
 	glLineWidth(lineWidth);

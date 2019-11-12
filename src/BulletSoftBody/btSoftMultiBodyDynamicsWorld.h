@@ -54,6 +54,8 @@ public:
 
 	virtual void debugDrawWorld();
 
+	virtual void debugDraw();
+
 	void addSoftBody(btSoftBody* body, int collisionFilterGroup = btBroadphaseProxy::DefaultFilter, int collisionFilterMask = btBroadphaseProxy::AllFilter);
 
 	void removeSoftBody(btSoftBody* body);

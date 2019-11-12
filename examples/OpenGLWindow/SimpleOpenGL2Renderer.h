@@ -61,6 +61,8 @@ public:
 
 	virtual void drawLines(const float* positions, const float color[4], int numPoints, int pointStrideInBytes, const unsigned int* indices, int numIndices, float pointDrawSize);
 
+	virtual void drawLinesC(const float* positions, const float color[4], const float colorLine[4], int numPoints, int pointStrideInBytes, const unsigned int* indices, int numIndices, float pointDrawSize);
+
 	virtual void drawLine(const float from[4], const float to[4], const float color[4], float lineWidth);
 
 	virtual int registerShape(const float* vertices, int numvertices, const int* indices, int numIndices, int primitiveType = B3_GL_TRIANGLES, int textureIndex = -1);

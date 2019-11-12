@@ -544,6 +544,7 @@ MultithreadedDebugDrawer : public btIDebugDraw
 	btAlignedObjectArray<btAlignedObjectArray<unsigned int> > m_sortedIndices;
 	btAlignedObjectArray<btAlignedObjectArray<btVector3FloatData> > m_sortedLines;
 	btHashMap<ColorWidth, int> m_hashedLines;
+	ColorWidth lineColor;
 
 public:
 	void drawDebugDrawerLines()
@@ -559,8 +560,7 @@ public:
 				int numPoints = m_sortedLines[index].size();
 				const unsigned int* indices = &m_sortedIndices[index][0];
 				int numIndices = m_sortedIndices[index].size();
-				m_guiHelper->getRenderInterface()->drawLines(positions, cw.m_color.m_floats, numPoints, stride, indices, numIndices, cw.width);
-			}
+				m_guiHelper->getRenderInterface()->drawLinesC(positions, cw.m_color.m_floats, lineColor.m_color.m_floats, numPoints, stride, indices, numIndices, cw.width);			}
 		}
 	}
 	MultithreadedDebugDrawer(GUIHelperInterface * guiHelper)
@@ -601,6 +601,44 @@ public:
 				m_sortedIndices[index].push_back(m_sortedLines[index].size());
 				to.serializeFloat(toX1);
 				m_sortedLines[index].push_back(toX1);
+			}
+		}
+	}
+
+	virtual void drawTriangles(const btVector3& v0, const btVector3& v1, const btVector3& v2, const btVector4& color, const btVector4& colorLine)
+	{
+		{
+			colorLine.serializeFloat(lineColor.m_color);
+			ColorWidth cw;
+			color.serializeFloat(cw.m_color);
+			cw.width = 1;
+			int index = -1;
+
+			int* indexPtr = m_hashedLines.find(cw);
+			if (indexPtr)
+			{
+				index = *indexPtr;
+			}
+			else
+			{
+				index = m_sortedLines.size();
+				m_sortedLines.expand();
+				m_sortedIndices.expand();
+				m_hashedLines.insert(cw, index);
+			}
+			btAssert(index >= 0);
+			if (index >= 0)
+			{
+				btVector3FloatData point0, point1, point2;
+				m_sortedIndices[index].push_back(m_sortedLines[index].size());
+				v0.serializeFloat(point0);
+				m_sortedLines[index].push_back(point0);
+				m_sortedIndices[index].push_back(m_sortedLines[index].size());
+				v1.serializeFloat(point1);
+				m_sortedLines[index].push_back(point1);
+				m_sortedIndices[index].push_back(m_sortedLines[index].size());
+				v2.serializeFloat(point2);
+				m_sortedLines[index].push_back(point2);
 			}
 		}
 	}

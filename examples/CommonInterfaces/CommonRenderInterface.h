@@ -62,6 +62,7 @@ struct CommonRenderInterface
 	virtual int registerGraphicsInstance(int shapeIndex, const float* position, const float* quaternion, const float* color, const float* scaling) = 0;
 	virtual int registerGraphicsInstance(int shapeIndex, const double* position, const double* quaternion, const double* color, const double* scaling) = 0;
 	virtual void drawLines(const float* positions, const float color[4], int numPoints, int pointStrideInBytes, const unsigned int* indices, int numIndices, float pointDrawSize) = 0;
+	virtual void drawLinesC(const float* positions, const float color[4], const float colorLine[4], int numPoints, int pointStrideInBytes, const unsigned int* indices, int numIndices, float pointDrawSize) = 0;
 	virtual void drawLine(const float from[4], const float to[4], const float color[4], float lineWidth) = 0;
 	virtual void drawLine(const double from[4], const double to[4], const double color[4], double lineWidth) = 0;
 	virtual void drawPoint(const float* position, const float color[4], float pointDrawSize) = 0;

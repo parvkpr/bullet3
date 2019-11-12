@@ -1921,6 +1921,72 @@ void GLInstancingRenderer::drawLines(const float* positions, const float color[4
 	glUseProgram(0);
 }
 
+void GLInstancingRenderer::drawLinesC(const float* positions, const float color[4], const float colorLine[4], int numPoints, int pointStrideInBytes, const unsigned int* indices, int numIndices, float lineWidthIn)
+{
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	float lineWidth = lineWidthIn;
+	b3Clamp(lineWidth, (float)lineWidthRange[0], (float)lineWidthRange[1]);
+	glLineWidth(lineWidth);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+
+	b3Assert(glGetError() == GL_NO_ERROR);
+	glUseProgram(linesShader);
+	glUniformMatrix4fv(lines_ProjectionMatrix, 1, false, &m_data->m_projectionMatrix[0]);
+	glUniformMatrix4fv(lines_ModelViewMatrix, 1, false, &m_data->m_viewMatrix[0]);
+	if (glIsEnabled(GL_BLEND)) {
+		glUniform4f(lines_colour, color[0], color[1], color[2], color[3]);
+	} else {
+		glUniform4f(lines_colour, colorLine[0], colorLine[1], colorLine[2], colorLine[3]);
+	}
+
+	//	glPointSize(pointDrawSize);
+	glBindVertexArray(linesVertexArrayObject);
+
+	b3Assert(glGetError() == GL_NO_ERROR);
+	glBindBuffer(GL_ARRAY_BUFFER, linesVertexBufferObject);
+
+	{
+		glBufferData(GL_ARRAY_BUFFER, numPoints * pointStrideInBytes, 0, GL_DYNAMIC_DRAW);
+
+		glBufferSubData(GL_ARRAY_BUFFER, 0, numPoints * pointStrideInBytes, positions);
+		b3Assert(glGetError() == GL_NO_ERROR);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ARRAY_BUFFER, linesVertexBufferObject);
+		glEnableVertexAttribArray(0);
+
+		b3Assert(glGetError() == GL_NO_ERROR);
+		int numFloats = 3;
+		glVertexAttribPointer(0, numFloats, GL_FLOAT, GL_FALSE, pointStrideInBytes, 0);
+		b3Assert(glGetError() == GL_NO_ERROR);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, linesIndexVbo);
+		int indexBufferSizeInBytes = numIndices * sizeof(int);
+
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexBufferSizeInBytes, NULL, GL_DYNAMIC_DRAW);
+		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, indexBufferSizeInBytes, indices);
+
+		glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, 0);
+	}
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	//	for (int i=0;i<numIndices;i++)
+	//		printf("indicec[i]=%d]\n",indices[i]);
+	b3Assert(glGetError() == GL_NO_ERROR);
+	glBindVertexArray(0);
+	b3Assert(glGetError() == GL_NO_ERROR);
+	glPointSize(1);
+	b3Assert(glGetError() == GL_NO_ERROR);
+	glUseProgram(0);
+}
+
 void GLInstancingRenderer::drawLine(const double fromIn[4], const double toIn[4], const double colorIn[4], double lineWidthIn)
 {
 	float from[4] = {float(fromIn[0]), float(fromIn[1]), float(fromIn[2]), float(fromIn[3])};

@@ -82,6 +82,26 @@ public:
 		m_lineIndices.push_back(m_lineIndices.size());
 	}
 
+	virtual void drawTriangles(const btVector3& v0, const btVector3& v1, const btVector3& v2, const btVector4& color, const btVector4& colorLine)	
+	{
+		if (m_currentLineColor != color || m_linePoints.size() >= BT_LINE_BATCH_SIZE)
+		{
+			flushLines();
+			m_currentLineColor = color;
+		}
+		MyDebugVec3 vertex0(v0);
+		MyDebugVec3 vertex1(v1);
+		MyDebugVec3 vertex2(v2);
+
+		m_linePoints.push_back(vertex0);
+		m_linePoints.push_back(vertex1);
+		m_linePoints.push_back(vertex2);
+
+		m_lineIndices.push_back(m_lineIndices.size());
+		m_lineIndices.push_back(m_lineIndices.size());
+		m_lineIndices.push_back(m_lineIndices.size());
+	}
+
 	virtual void drawContactPoint(const btVector3& PointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color)
 	{
 		drawLine(PointOnB, PointOnB + normalOnB * distance, color);
@@ -130,10 +150,10 @@ public:
 
 static btVector4 sColors[4] =
 	{
-		btVector4(60. / 256., 186. / 256., 84. / 256., 1),
-		btVector4(244. / 256., 194. / 256., 13. / 256., 1),
-		btVector4(219. / 256., 50. / 256., 54. / 256., 1),
-		btVector4(72. / 256., 133. / 256., 237. / 256., 1),
+		btVector4(60. / 256., 186. / 256., 84. / 256., 1), //green
+		btVector4(244. / 256., 194. / 256., 13. / 256., 1), //yellow
+		btVector4(219. / 256., 50. / 256., 54. / 256., 1), //red
+		btVector4(72. / 256., 133. / 256., 237. / 256., 1), //blue
 
 		//btVector4(1,1,0,1),
 };
@@ -1300,6 +1320,10 @@ void OpenGLGuiHelper::autogenerateGraphicsObjects(btDiscreteDynamicsWorld* rbWor
 
 		btVector4 color;
 		color = sColors[colorIndex];
+		if (colObj->getCollisionShape()->getShapeType() == SOFTBODY_SHAPE_PROXYTYPE)
+		{
+			color = colObj->getSoftBodyColor();
+		}
 		if (colObj->getCollisionShape()->getShapeType() == STATIC_PLANE_PROXYTYPE)
 		{
 			color.setValue(1, 1, 1, 1);

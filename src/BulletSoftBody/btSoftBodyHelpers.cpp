@@ -312,24 +312,19 @@ void btSoftBodyHelpers::Draw(btSoftBody* psb,
 			}
 		}
 		/* Faces	*/
-		// if (0 != (drawflags & fDrawFlags::Faces))
-		// {
-		// 	const btScalar scl = (btScalar)0.8;
-		// 	const btScalar alp = (btScalar)1;
-		// 	// const btVector3 col(0, (btScalar)0.7, 0);
-		// 	const btVector3 col(1, 1, 1);
-		// 	for (i = 0; i < psb->m_faces.size(); ++i)
-		// 	{
-		// 		const btSoftBody::Face& f = psb->m_faces[i];
-		// 		if (0 == (f.m_material->m_flags & btSoftBody::fMaterial::DebugDraw)) continue;
-		// 		const btVector3 x[] = {f.m_n[0]->m_x, f.m_n[1]->m_x, f.m_n[2]->m_x};
-		// 		const btVector3 c = (x[0] + x[1] + x[2]) / 3;
-		// 		idraw->drawTriangle((x[0] - c) * scl + c,
-		// 							(x[1] - c) * scl + c,
-		// 							(x[2] - c) * scl + c,
-		// 							col, alp);
-		// 	}
-		// }
+		if (0 != (drawflags & fDrawFlags::Faces))
+		{
+			const btVector4 col = psb->getSoftBodyColor();
+			const btVector4 colLine = psb->getSoftBodyLineColor();
+			for (i = 0; i < psb->m_faces.size(); ++i)
+			{
+				const btSoftBody::Face& f = psb->m_faces[i];
+				if (0 == (f.m_material->m_flags & btSoftBody::fMaterial::DebugDraw)) continue;
+				const btVector3 x[] = {f.m_n[0]->m_x, f.m_n[1]->m_x, f.m_n[2]->m_x};
+				const btVector3 c = (x[0] + x[1] + x[2]) / 3;
+				idraw->drawTriangles(x[0], x[1], x[2], col, colLine);
+			}
+		}
 		/* Tetras	*/
 		if (0 != (drawflags & fDrawFlags::Tetras))
 		{

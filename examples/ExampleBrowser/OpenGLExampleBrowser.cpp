@@ -1235,9 +1235,22 @@ void OpenGLExampleBrowser::update(float deltaTime)
 			if (visualWireframe)
 			{
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+				// glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+				// sCurrentDemo->physicsDebugDraw(gDebugDrawFlags);
 			}
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 			BT_PROFILE("Render Scene");
 			sCurrentDemo->renderScene();
+			glDepthMask(false);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			sCurrentDemo->physicsDebugDraw(gDebugDrawFlags);
+			glDisable(GL_BLEND);
+			glDepthMask(true);
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			sCurrentDemo->physicsDebugDraw(gDebugDrawFlags);
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 		else
 		{

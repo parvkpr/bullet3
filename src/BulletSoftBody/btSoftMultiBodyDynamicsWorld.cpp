@@ -39,7 +39,7 @@ btSoftMultiBodyDynamicsWorld::btSoftMultiBodyDynamicsWorld(
 		m_ownsSolver = true;
 	}
 
-	m_drawFlags = fDrawFlags::Std;
+	m_drawFlags = fDrawFlags::StdTriangle;
 	m_drawNodeTree = true;
 	m_drawFaceTree = false;
 	m_drawClusterTree = false;
@@ -171,6 +171,24 @@ void btSoftMultiBodyDynamicsWorld::debugDrawWorld()
 		}
 	}
 }
+
+void btSoftMultiBodyDynamicsWorld::debugDraw()
+{
+	if (getDebugDrawer())
+	{
+		getDebugDrawer()->flushLines();
+		getDebugDrawer()->clearLines();
+		int i;
+		for (i = 0; i < this->m_softBodies.size(); i++)
+		{
+			btSoftBody* psb = (btSoftBody*)this->m_softBodies[i];
+			m_debugDrawer->setDebugMode(1);
+			btSoftBodyHelpers::Draw(psb, m_debugDrawer, m_drawFlags);
+
+		}
+	}
+}
+
 
 struct btSoftSingleRayCallback : public btBroadphaseRayCallback
 {
