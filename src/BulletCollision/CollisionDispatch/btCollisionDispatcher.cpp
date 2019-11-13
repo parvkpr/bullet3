@@ -216,7 +216,6 @@ public:
 void btCollisionDispatcher::dispatchAllCollisionPairs(btOverlappingPairCache* pairCache, const btDispatcherInfo& dispatchInfo, btDispatcher* dispatcher)
 {
 	//m_blockedForChanges = true;
-
 	btCollisionPairCallback collisionCallback(dispatchInfo, this);
 
 	{

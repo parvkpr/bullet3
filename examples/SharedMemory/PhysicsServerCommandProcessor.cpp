@@ -7497,7 +7497,7 @@ bool PhysicsServerCommandProcessor::processLoadClothCommand(const struct SharedM
             psb->setSoftBodyLineColor(btVector4(loadClothArgs.m_colorLineRGBA[0], loadClothArgs.m_colorLineRGBA[1], loadClothArgs.m_colorLineRGBA[2], loadClothArgs.m_colorLineRGBA[3]));
 			m_data->m_dynamicsWorld->addSoftBody(psb);
             m_data->m_guiHelper->createCollisionShapeGraphicsObject(psb->getCollisionShape());
-            m_data->m_guiHelper->autogenerateGraphicsObjects(this->m_data->m_dynamicsWorld);           
+            //m_data->m_guiHelper->autogenerateGraphicsObjects(this->m_data->m_dynamicsWorld);           
 			int bodyUniqueId = m_data->m_bodyHandles.allocHandle();
             InternalBodyHandle* bodyHandle = m_data->m_bodyHandles.getHandle(bodyUniqueId);
             bodyHandle->m_softBody = psb;
@@ -7639,16 +7639,19 @@ bool PhysicsServerCommandProcessor::processLoadClothPatchCommand(const struct Sh
         psb->appendAnchor(loadClothPatchArgs.m_anchors[i], bodyRigid, disableCollisionBetweenLinkedBodies, influence);
     }
 
+    psb->setSoftBodyColor(btVector4(loadClothPatchArgs.m_colorRGBA[0], loadClothPatchArgs.m_colorRGBA[1], loadClothPatchArgs.m_colorRGBA[2], loadClothPatchArgs.m_colorRGBA[3]));		
+    psb->setSoftBodyLineColor(btVector4(loadClothPatchArgs.m_colorLineRGBA[0], loadClothPatchArgs.m_colorLineRGBA[1], loadClothPatchArgs.m_colorLineRGBA[2], loadClothPatchArgs.m_colorLineRGBA[3]));		
+
     m_data->m_dynamicsWorld->addSoftBody(psb);
     m_data->m_guiHelper->createCollisionShapeGraphicsObject(psb->getCollisionShape());
-    m_data->m_guiHelper->autogenerateGraphicsObjects(this->m_data->m_dynamicsWorld);
+    //m_data->m_guiHelper->autogenerateGraphicsObjects(this->m_data->m_dynamicsWorld);
     int bodyUniqueId = m_data->m_bodyHandles.allocHandle();
     InternalBodyHandle* bodyHandle = m_data->m_bodyHandles.getHandle(bodyUniqueId);
     bodyHandle->m_softBody = psb;
     serverStatusOut.m_loadSoftBodyResultArguments.m_objectUniqueId = bodyUniqueId;
     serverStatusOut.m_type = CMD_LOAD_SOFT_BODY_COMPLETED;
 
-    printf("cloth node 0 pos: (%f, %f, %f)\n", psb->m_nodes[0].m_x.x(), psb->m_nodes[0].m_x.y(), psb->m_nodes[0].m_x.z());
+    //printf("cloth node 0 pos: (%f, %f, %f)\n", psb->m_nodes[0].m_x.x(), psb->m_nodes[0].m_x.y(), psb->m_nodes[0].m_x.z());
 
     b3Notification notification;
     notification.m_notificationType = BODY_ADDED;
@@ -7661,11 +7664,6 @@ bool PhysicsServerCommandProcessor::processLoadClothPatchCommand(const struct Sh
 
 bool PhysicsServerCommandProcessor::processLoadSoftBodyCommand(const struct SharedMemoryCommand& clientCmd, struct SharedMemoryStatus& serverStatusOut, char* bufferServerToClient, int bufferSizeInBytes)
 {
-    // InternalBodyHandle* bodyHandleRigid = m_data->m_bodyHandles.getHandle(1);
-    // btMultiBody* bodyRigid = bodyHandleRigid->m_multiBody;
-    // bodyRigid->getLink(8).m_jointLowerLimit = -0.05;
-    // bodyRigid->getLink(8).m_jointUpperLimit = 0.05;
-
 	serverStatusOut.m_type = CMD_LOAD_SOFT_BODY_FAILED;
 	bool hasStatus = true;
 #ifndef SKIP_SOFT_BODY_MULTI_BODY_DYNAMICS_WORLD
@@ -7725,53 +7723,22 @@ bool PhysicsServerCommandProcessor::processLoadSoftBodyCommand(const struct Shar
 			int numTris = indices.size() / 3;
 			if (numTris > 0)
 			{
-                // const int numX = 31;
-                // const int numY = 31;
-                // const int fixed = 0; // 3;
-                // btSoftBody* psb = btSoftBodyHelpers::CreatePatch(m_data->m_dynamicsWorld->getWorldInfo(), btVector3(-0.5, 0, 0), btVector3(0.5, 0, 0), btVector3(-0.5, 1, 0), btVector3(0.5, 1, 0), numX, numY, fixed, true);
-				btSoftBody* psb = btSoftBodyHelpers::CreateFromTriMesh(m_data->m_dynamicsWorld->getWorldInfo(), &vertices[0], &indices[0], numTris);
+              	btSoftBody* psb = btSoftBodyHelpers::CreateFromTriMesh(m_data->m_dynamicsWorld->getWorldInfo(), &vertices[0], &indices[0], numTris);
 				btSoftBody::Material* pm = psb->appendMaterial();
 				// pm->m_kLST = 0.5;
 				pm->m_flags -= btSoftBody::fMaterial::DebugDraw;
 				psb->generateBendingConstraints(2, pm);
 				psb->m_cfg.piterations = 20;
 				psb->m_cfg.kDF = 0.5;
-                // psb->m_cfg.kCHR = 1.0;
-                // psb->m_cfg.kKHR = 1.0;
-                // psb->m_cfg.kAHR = 1.0;
+
 				psb->randomizeConstraints();
 				psb->rotate(btQuaternion(0.70711, 0, 0, 0.70711));
 				psb->translate(btVector3(-0.05, 0, 1.0));
 				psb->scale(btVector3(scale, scale, scale));
 
-                // InternalBodyHandle* bodyHandleRigid1 = m_data->m_bodyHandles.getHandle(1);
-                // btRigidBody* bodyRigid1 = bodyHandleRigid1->m_rigidBody;
-                // InternalBodyHandle* bodyHandleRigid2 = m_data->m_bodyHandles.getHandle(2);
-                // btRigidBody* bodyRigid2 = bodyHandleRigid2->m_rigidBody;
-                // InternalBodyHandle* bodyHandleRigid3 = m_data->m_bodyHandles.getHandle(3);
-                // btRigidBody* bodyRigid3 = bodyHandleRigid3->m_rigidBody;
-                // InternalBodyHandle* bodyHandleRigid4 = m_data->m_bodyHandles.getHandle(4);
-                // btRigidBody* bodyRigid4 = bodyHandleRigid4->m_rigidBody;
-                // const btVector3 localPivot = btVector3(0, 0, 0);
-                // bool disableCollisionBetweenLinkedBodies = true;
-                // btScalar influence = 1;
-                // psb->appendAnchor(0, bodyRigid1, disableCollisionBetweenLinkedBodies, influence);
-                // psb->appendAnchor(30, bodyRigid2, disableCollisionBetweenLinkedBodies, influence);
-                // psb->appendAnchor(960, bodyRigid3, disableCollisionBetweenLinkedBodies, influence);
-                // psb->appendAnchor(930, bodyRigid4, disableCollisionBetweenLinkedBodies, influence);
-                // psb->appendAnchor(0, bodyRigid1, disableCollisionBetweenLinkedBodies, influence);
-                // psb->appendAnchor(61, bodyRigid2, disableCollisionBetweenLinkedBodies, influence);
-                // psb->appendAnchor(3843, bodyRigid3, disableCollisionBetweenLinkedBodies, influence);
-                // psb->appendAnchor(3782, bodyRigid4, disableCollisionBetweenLinkedBodies, influence);
-
 				psb->setTotalMass(mass, true);
 				psb->getCollisionShape()->setMargin(collisionMargin);
 				psb->getCollisionShape()->setUserPointer(psb);
-
-                // psb->setMass(0, 0);
-                // psb->setMass(30, 0);
-                // psb->setMass(960, 0);
-                // psb->setMass(930, 0);
 
 				m_data->m_dynamicsWorld->addSoftBody(psb);
 				m_data->m_guiHelper->createCollisionShapeGraphicsObject(psb->getCollisionShape());
@@ -8035,8 +8002,10 @@ bool PhysicsServerCommandProcessor::processForwardDynamicsCommand(const struct S
 			}
 		}
 	}
-
 	btScalar deltaTimeScaled = m_data->m_physicsDeltaTime * simTimeScalingFactor;
+
+	// printf("m_data->m_numSimulationSubSteps: %d\n", m_data->m_numSimulationSubSteps);
+	// printf("deltaTimeScaled: %d, %d\n", deltaTimeScaled, m_data->m_simulationTimestamp);
 
 	int numSteps = 0;
 	if (m_data->m_numSimulationSubSteps > 0)
@@ -8049,7 +8018,6 @@ bool PhysicsServerCommandProcessor::processForwardDynamicsCommand(const struct S
 		numSteps = m_data->m_dynamicsWorld->stepSimulation(deltaTimeScaled, 0);
                 m_data->m_simulationTimestamp += deltaTimeScaled;
 	}
-
 	if (numSteps > 0)
 	{
 		addTransformChangedNotifications();

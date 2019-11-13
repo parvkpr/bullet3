@@ -378,7 +378,7 @@ B3_SHARED_API int b3GetSoftBodyData(b3SharedMemoryStatusHandle statusHandle, str
 	return 0;
 }
 
-B3_SHARED_API b3SharedMemoryCommandHandle b3LoadClothPatchCommandInit(b3PhysicsClientHandle physClient, int numX, int numY, const double* corner00, const double* corner10, const double* corner01, const double* corner11, double scale, double mass, const double* position, const double* orientation, const int* bodyAnchorIds, const int* anchors, double collisionMargin)
+B3_SHARED_API b3SharedMemoryCommandHandle b3LoadClothPatchCommandInit(b3PhysicsClientHandle physClient, int numX, int numY, const double* corner00, const double* corner10, const double* corner01, const double* corner11, double scale, double mass, const double* position, const double* orientation, const int* bodyAnchorIds, const int* anchors, double collisionMargin, const double* color, const double* colorLine)
 {
 	PhysicsClient* cl = (PhysicsClient*)physClient;
 	b3Assert(cl);
@@ -426,6 +426,14 @@ B3_SHARED_API b3SharedMemoryCommandHandle b3LoadClothPatchCommandInit(b3PhysicsC
 		command->m_loadClothPatchArguments.m_bodyAnchorIds[i] = -1;
 		command->m_loadClothPatchArguments.m_anchors[i] = -1;
 		command->m_loadClothPatchArguments.m_collisionMargin = collisionMargin;
+		command->m_loadClothArguments.m_colorRGBA[0] = color[0];
+		command->m_loadClothArguments.m_colorRGBA[1] = color[1];
+		command->m_loadClothArguments.m_colorRGBA[2] = color[2];
+		command->m_loadClothArguments.m_colorRGBA[3] = color[3];
+		command->m_loadClothArguments.m_colorLineRGBA[0] = colorLine[0];
+		command->m_loadClothArguments.m_colorLineRGBA[1] = colorLine[1];
+		command->m_loadClothArguments.m_colorLineRGBA[2] = colorLine[2];
+		command->m_loadClothArguments.m_colorLineRGBA[3] = colorLine[3];
 
 		return (b3SharedMemoryCommandHandle)command;
 	}
@@ -939,6 +947,7 @@ B3_SHARED_API b3SharedMemoryCommandHandle b3InitStepSimulationCommand(b3PhysicsC
 	b3Assert(cl->canSubmitCommand());
 	struct SharedMemoryCommand* command = cl->getAvailableSharedMemoryCommand();
 	b3Assert(command);
+	printf("b3InitStepSimulationCommand");
 	return b3InitStepSimulationCommand2((b3SharedMemoryCommandHandle)command);
 }
 

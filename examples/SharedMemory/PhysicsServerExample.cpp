@@ -1883,6 +1883,7 @@ void PhysicsServerExample::exitPhysics()
 		}
 		//we need to call 'stepSimulation' to make sure that
 		//other threads get out of blocking state (workerThreadWait)
+		printf("end");
 		stepSimulation(0);
 	};
 
@@ -2456,6 +2457,7 @@ void PhysicsServerExample::updateGraphics()
 
 void PhysicsServerExample::stepSimulation(float deltaTime)
 {
+	printf("step simulation physicsserverexample\n");
 	BT_PROFILE("PhysicsServerExample::stepSimulation");
 
 	//this->m_physicsServer.processClientCommands();

@@ -43,7 +43,7 @@ struct fDrawFlags
 		/* presets	*/
 		Std = Links + Faces + Tetras + Anchors + Notes + Joints,
 		StdTetra = Std - Faces + Tetras,
-		StdAnch = Std - Anchors,
+		StdNAnch = Std - Anchors,
 		StdTriangle = Std - Anchors - Links - Tetras
 	};
 };

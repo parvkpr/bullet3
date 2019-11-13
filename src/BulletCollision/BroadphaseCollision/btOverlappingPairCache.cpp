@@ -228,6 +228,7 @@ btBroadphasePair* btHashedOverlappingPairCache::internalAddPair(btBroadphaseProx
 
 void* btHashedOverlappingPairCache::removeOverlappingPair(btBroadphaseProxy* proxy0, btBroadphaseProxy* proxy1, btDispatcher* dispatcher)
 {
+	// printf("removeOverlappingPair");
 	if (proxy0->m_uniqueId > proxy1->m_uniqueId)
 		btSwap(proxy0, proxy1);
 	int proxyId1 = proxy0->getUid();
@@ -334,7 +335,7 @@ void btHashedOverlappingPairCache::processAllOverlappingPairs(btOverlapCallback*
 	BT_PROFILE("btHashedOverlappingPairCache::processAllOverlappingPairs");
 	int i;
 
-	//	printf("m_overlappingPairArray.size()=%d\n",m_overlappingPairArray.size());
+	// printf("m_overlappingPairArray.size()=%d\n",m_overlappingPairArray.size());
 	for (i = 0; i < m_overlappingPairArray.size();)
 	{
 		btBroadphasePair* pair = &m_overlappingPairArray[i];
@@ -371,6 +372,7 @@ public:
 
 void btHashedOverlappingPairCache::processAllOverlappingPairs(btOverlapCallback* callback, btDispatcher* dispatcher, const struct btDispatcherInfo& dispatchInfo)
 {
+	printf("btHashedOverlappingPairCache::processAllOverlappingPairs\n");
 	if (dispatchInfo.m_deterministicOverlappingPairs)
 	{
 		btBroadphasePairArray& pa = getOverlappingPairArray();

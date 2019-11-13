@@ -1740,7 +1740,7 @@ void CMainApplication::RenderStereoTargets()
 	}
 	//else
 	{
-		printf("or just get debug draw????");
+		// printf("or just get debug draw????");
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		// BT_PROFILE("Render Scene");
 		sExample->renderScene();
@@ -1803,7 +1803,7 @@ void CMainApplication::RenderStereoTargets()
 	}
 	//else
 	{
-		printf("or just get debug draw????");
+		// printf("or just get debug draw????");
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		// BT_PROFILE("Render Scene");
 		sExample->renderScene();

@@ -327,9 +327,12 @@ static PyObject* pybullet_stepSimulation(PyObject* self, PyObject* args, PyObjec
 
 		if (b3CanSubmitCommand(sm))
 		{
+			printf("PyBullet step simulation");
 			statusHandle = b3SubmitClientCommandAndWaitStatus(
 				sm, b3InitStepSimulationCommand(sm));
+			printf("finish PyBullet step simulation");
 			statusType = b3GetStatusType(statusHandle);
+			printf("getstatus finish");
 		}
 	}
 
@@ -2154,7 +2157,7 @@ static PyObject* pybullet_loadClothPatch(PyObject* self, PyObject* args, PyObjec
 {
 	int physicsClientId = 0;
 
-	static char* kwlist[] = {"numX", "numY", "corner00", "corner10", "corner01", "corner11", "scale", "mass", "position", "orientation", "bodyAnchorIds", "anchors", "collisionMargin", "physicsClientId", NULL};
+	static char* kwlist[] = {"numX", "numY", "corner00", "corner10", "corner01", "corner11", "scale", "mass", "position", "orientation", "bodyAnchorIds", "anchors", "collisionMargin", "rgbaColor", "rgbaLineColor", "physicsClientId", NULL};
 
 	int bodyUniqueId = -1;
     int numX = 31;
@@ -2178,10 +2181,14 @@ static PyObject* pybullet_loadClothPatch(PyObject* self, PyObject* args, PyObjec
 	PyObject* anchorsObj = 0;
 	int anchorsArray[25];
 	double collisionMargin = 0.01;
+	PyObject* rgbaColorObj = 0;
+	double rgbaColorArray[4] = {139. / 256., 195. / 256., 74. / 256.,0.6}; //green
+	PyObject* rgbaLineColorObj = 0;
+	double rgbaLineColorArray[4] = {139. / 256., 195. / 256., 74. / 256.,0.6}; //green
 
 	b3PhysicsClientHandle sm = 0;
 
-	if (!PyArg_ParseTupleAndKeywords(args, keywds, "iiOOOO|ddOOOOdi", kwlist, &numX, &numY, &corner00Obj, &corner10Obj, &corner01Obj, &corner11Obj, &scale, &mass, &positionObj, &orientationObj, &bodyAnchorIdsObj, &anchorsObj, &collisionMargin, &physicsClientId))
+	if (!PyArg_ParseTupleAndKeywords(args, keywds, "iiOOOO|ddOOOOdOOi", kwlist, &numX, &numY, &corner00Obj, &corner10Obj, &corner01Obj, &corner11Obj, &scale, &mass, &positionObj, &orientationObj, &bodyAnchorIdsObj, &anchorsObj, &collisionMargin, &rgbaColorObj, &rgbaLineColorObj, &physicsClientId))
 	{
 		return NULL;
 	}
@@ -2283,9 +2290,31 @@ static PyObject* pybullet_loadClothPatch(PyObject* self, PyObject* args, PyObjec
         anchorsArray[i] = -1;
 	}
 
+	if (rgbaColorObj)
+	{
+		int i = 0;
+		PyObject* rgbaColorSeq = PySequence_Fast(rgbaColorObj, "expected a position sequence");
+		int rgbaColorSize = PySequence_Size(rgbaColorObj);
+		for (i = 0; i < rgbaColorSize; i++)
+		{
+			rgbaColorArray[i] = pybullet_internalGetFloatFromSequence(rgbaColorSeq, i);
+		}
+	}
+
+	if (rgbaLineColorObj)
+	{
+		int i = 0;
+		PyObject* rgbaLineColorSeq = PySequence_Fast(rgbaLineColorObj, "expected a position sequence");
+		int rgbaLineColorSize = PySequence_Size(rgbaLineColorObj);
+		for (i = 0; i < rgbaLineColorSize; i++)
+		{
+			rgbaLineColorArray[i] = pybullet_internalGetFloatFromSequence(rgbaLineColorSeq, i);
+		}
+	}
+
     b3SharedMemoryStatusHandle statusHandle;
     int statusType;
-    b3SharedMemoryCommandHandle command = b3LoadClothPatchCommandInit(sm, numX, numY, corner00Array, corner10Array, corner01Array, corner11Array, scale, mass, positionArray, orientationArray, bodyAnchorIdsArray, anchorsArray, collisionMargin);
+    b3SharedMemoryCommandHandle command = b3LoadClothPatchCommandInit(sm, numX, numY, corner00Array, corner10Array, corner01Array, corner11Array, scale, mass, positionArray, orientationArray, bodyAnchorIdsArray, anchorsArray, collisionMargin, rgbaColorArray, rgbaLineColorArray);
 
     statusHandle = b3SubmitClientCommandAndWaitStatus(sm, command);
     statusType = b3GetStatusType(statusHandle);
