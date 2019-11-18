@@ -79,12 +79,14 @@ void btSoftMultiBodyDynamicsWorld::internalSingleStepSimulation(btScalar timeSte
 {
 	// Let the solver grab the soft bodies and if necessary optimize for it
 	m_softBodySolver->optimize(getSoftBodyArray());
+
 	if (!m_softBodySolver->checkInitialized())
 	{
 		btAssert("Solver initialization failed\n");
 	}
 
 	btDiscreteDynamicsWorld::internalSingleStepSimulation(timeStep);
+
 	///solve soft bodies constraints
 	solveSoftBodiesConstraints(timeStep);
 
@@ -97,6 +99,7 @@ void btSoftMultiBodyDynamicsWorld::internalSingleStepSimulation(btScalar timeSte
 
 	///update soft bodies
 	m_softBodySolver->updateSoftBodies();
+
 	// End solver-wise simulation step
 	// ///////////////////////////////
 }

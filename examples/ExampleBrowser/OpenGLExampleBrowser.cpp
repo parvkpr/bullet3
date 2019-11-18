@@ -1155,6 +1155,8 @@ void OpenGLExampleBrowser::updateGraphics()
 	}
 }
 
+static int upadte_calls = 0;
+
 void OpenGLExampleBrowser::update(float deltaTime)
 {
 	b3ChromeUtilsEnableProfiling();
@@ -1164,6 +1166,9 @@ void OpenGLExampleBrowser::update(float deltaTime)
 		sCurrentDemo->updateGraphics();
 		return;
 	}
+
+	upadte_calls += 1;
+	// printf("daupte calls %d\n", upadte_calls);
 
 	B3_PROFILE("OpenGLExampleBrowser::update");
 	assert(glGetError() == GL_NO_ERROR);
@@ -1219,6 +1224,7 @@ void OpenGLExampleBrowser::update(float deltaTime)
 			}
 			else
 			{
+				// printf("deltaTime: %d\n", deltaTime);
 				sCurrentDemo->stepSimulation(deltaTime);  //1./60.f);
 			}
 		}

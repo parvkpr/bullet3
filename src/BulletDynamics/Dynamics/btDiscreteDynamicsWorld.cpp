@@ -451,33 +451,45 @@ int btDiscreteDynamicsWorld::stepSimulation(btScalar timeStep, int maxSubSteps, 
 
 void btDiscreteDynamicsWorld::internalSingleStepSimulation(btScalar timeStep)
 {
-	BT_PROFILE("internalSingleStepSimulation");
+	//BT_PROFILE("internalSingleStepSimulation");
 
 	if (0 != m_internalPreTickCallback)
 	{
 		(*m_internalPreTickCallback)(this, timeStep);
 	}
+
 	///apply gravity, predict motion
 	predictUnconstraintMotion(timeStep);
+
 	btDispatcherInfo& dispatchInfo = getDispatchInfo();
+
 	dispatchInfo.m_timeStep = timeStep;
 	dispatchInfo.m_stepCount = 0;
 	dispatchInfo.m_debugDraw = getDebugDrawer();
+
 	createPredictiveContacts(timeStep);
-	printf("performDiscreteCollisionDetection\n");
+
 	///perform collision detection
+	// printf("performDiscreteCollisionDetection\n");
 	performDiscreteCollisionDetection();
-	printf("calculateSimulationIslands\n");
+	// printf("finished\n");
+
 	calculateSimulationIslands();
 
 	getSolverInfo().m_timeStep = timeStep;
+
 	///solve contact and other joint constraints
 	solveConstraints(getSolverInfo());
+
 	///CallbackTriggers();
+
 	///integrate transforms
+
 	integrateTransforms(timeStep);
+
 	///update vehicle simulation
 	updateActions(timeStep);
+
 	updateActivationState(timeStep);
 
 	if (0 != m_internalTickCallback)

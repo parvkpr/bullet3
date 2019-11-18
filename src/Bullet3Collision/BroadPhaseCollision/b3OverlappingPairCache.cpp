@@ -336,8 +336,6 @@ void* b3HashedOverlappingPairCache::removeOverlappingPair(int proxy0, int proxy1
 void b3HashedOverlappingPairCache::processAllOverlappingPairs(b3OverlapCallback* callback, b3Dispatcher* dispatcher)
 {
 	int i;
-
-	//	printf("m_overlappingPairArray.size()=%d\n",m_overlappingPairArray.size());
 	for (i = 0; i < m_overlappingPairArray.size();)
 	{
 		b3BroadphasePair* pair = &m_overlappingPairArray[i];
@@ -452,6 +450,7 @@ b3BroadphasePair* b3SortedOverlappingPairCache::findPair(int proxy0, int proxy1)
 void b3SortedOverlappingPairCache::processAllOverlappingPairs(b3OverlapCallback* callback, b3Dispatcher* dispatcher)
 {
 	int i;
+	printf("b3SortedOverlappingPairCache m_overlappingPairArray.size()=%d\n",m_overlappingPairArray.size());
 
 	for (i = 0; i < m_overlappingPairArray.size();)
 	{

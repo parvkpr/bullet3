@@ -48,6 +48,7 @@ CommonExampleInterface *sExample;
 
 int sPrevPacketNum = 0;
 OpenGLGuiHelper *sGuiPtr = 0;
+static bool singleStepSimulation = false;
 
 static vr::VRControllerState_t sPrevStates[vr::k_unMaxTrackedDeviceCount] = {0};
 
@@ -360,10 +361,6 @@ void VRPhysicsServerVisualizerFlagCallback(int flag, bool enable)
 	{
 		useShadowMap = enable;
 	}
-	if (flag == COV_ENABLE_GUI)
-	{
-		//there is no regular GUI here, but disable the
-	}
 	if (flag == COV_ENABLE_VR_RENDER_CONTROLLERS)
 	{
 		gEnableVRRenderControllers = enable;
@@ -372,6 +369,20 @@ void VRPhysicsServerVisualizerFlagCallback(int flag, bool enable)
 	{
 		gEnableVRRendering = enable;
 	}
+
+	// if (flag == COV_ENABLE_SINGLE_STEP_RENDERING)
+	// {
+	// 	if (enable)
+	// 	{
+	// 		gEnableVRRendering = false;
+	// 		singleStepSimulation = true;
+	// 	}
+	// 	else
+	// 	{
+	// 		gEnableVRRendering = true;
+	// 		singleStepSimulation = false;
+	// 	}
+	// }
 
 	if (flag == COV_ENABLE_WIREFRAME)
 	{
@@ -825,28 +836,53 @@ bool CMainApplication::HandleInput()
 //-----------------------------------------------------------------------------
 // Purpose:
 //-----------------------------------------------------------------------------
+// static double gMinUpdateTimeMicroSecs = 4000;
 
 void CMainApplication::RunMainLoop()
 {
 	bool bQuit = false;
 
+	// b3Clock clock;
+	// clock.reset();
+
+	// int num_update = 0;
+
 	while (!bQuit && !m_app->m_window->requestedExit())
 	{
 		this->m_app->setUpAxis(gUpAxis);
 		b3ChromeUtilsEnableProfiling();
+
+		// clock.usleep(0);
+		// float deltaTimeInSeconds = clock.getTimeMicroseconds() / 1000000.f;
+		// if (deltaTimeInSeconds > 0.1)
+		// {
+		// 	deltaTimeInSeconds = 0.1;
+		// }
+
+		// if (deltaTimeInSeconds < (gMinUpdateTimeMicroSecs / 1e6))
+		// {
+		// 	sExample->updateGraphics();
+		// }
+		// else
+		// {
+		// 	clock.reset();
 		if (gEnableVRRendering)
 		{
 			B3_PROFILE("main");
-
 			bQuit = HandleInput();
-
+			// num_update += 1;
+			// printf("RenderFrame()\n");
 			RenderFrame();
 		}
 		else
 		{
-			b3Clock::usleep(0);
+			// printf("(updateGraphics)\n");
+			// b3Clock::usleep(0);
 			sExample->updateGraphics();
 		}
+		// }
+		// printf("finished one loop\n");
+		// printf("UPDATED!!!: %d\n", num_update);
 	}
 }
 
@@ -974,6 +1010,8 @@ void CMainApplication::RenderFrame()
 		B3_PROFILE("UpdateHMDMatrixPose");
 		UpdateHMDMatrixPose();
 	}
+
+	// printf("draw vr5\n");
 }
 
 //-----------------------------------------------------------------------------
@@ -1674,6 +1712,7 @@ void CMainApplication::RenderStereoTargets()
 
 	btScalar dtSec = btScalar(m_clock.getTimeInSeconds());
 	dtSec = btMin(dtSec, btScalar(0.1));
+	// printf("stepSimulation dtSec: %d\n", dtSec);
 	sExample->stepSimulation(dtSec);
 	m_clock.reset();
 
@@ -1740,9 +1779,7 @@ void CMainApplication::RenderStereoTargets()
 	}
 	//else
 	{
-		// printf("or just get debug draw????");
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		// BT_PROFILE("Render Scene");
 		sExample->renderScene();
 		glDepthMask(false);
 		glEnable(GL_BLEND);
@@ -1803,9 +1840,7 @@ void CMainApplication::RenderStereoTargets()
 	}
 	//else
 	{
-		// printf("or just get debug draw????");
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		// BT_PROFILE("Render Scene");
 		sExample->renderScene();
 		glDepthMask(false);
 		glEnable(GL_BLEND);

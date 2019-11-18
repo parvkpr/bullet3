@@ -947,7 +947,6 @@ B3_SHARED_API b3SharedMemoryCommandHandle b3InitStepSimulationCommand(b3PhysicsC
 	b3Assert(cl->canSubmitCommand());
 	struct SharedMemoryCommand* command = cl->getAvailableSharedMemoryCommand();
 	b3Assert(command);
-	printf("b3InitStepSimulationCommand");
 	return b3InitStepSimulationCommand2((b3SharedMemoryCommandHandle)command);
 }
 
@@ -5229,7 +5228,6 @@ B3_SHARED_API void b3SetVRCameraOrientationOffset(b3SharedMemoryCommandHandle co
 
 B3_SHARED_API void b3GetVREventsData(b3PhysicsClientHandle physClient, struct b3VREventsData* vrEventsData)
 {
-	printf("getvrevnetsdata\n");
 	PhysicsClient* cl = (PhysicsClient*)physClient;
 	if (cl)
 	{

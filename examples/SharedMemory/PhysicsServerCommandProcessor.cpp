@@ -600,6 +600,7 @@ struct CommandLogPlayback
 
 				switch (commandType)
 				{
+					printf("commandType: %d\n", commandType);
 					case CMD_LOAD_MJCF:
 					{
 #ifdef BACKWARD_COMPAT
@@ -3359,6 +3360,7 @@ void PhysicsServerCommandProcessor::replayLogCommand(char* bufferServerToClient,
 		bool hasCommand = m_data->m_logPlayback->processNextCommand(&clientCmd);
 		if (hasCommand)
 		{
+			printf("processCommand\n");
 			processCommand(clientCmd, serverStatus, bufferServerToClient, bufferSizeInBytes);
 		}
 	}
@@ -5123,7 +5125,7 @@ bool PhysicsServerCommandProcessor::processSetVRCameraStateCommand(const struct 
 
 bool PhysicsServerCommandProcessor::processRequestVREventsCommand(const struct SharedMemoryCommand& clientCmd, struct SharedMemoryStatus& serverStatusOut, char* bufferServerToClient, int bufferSizeInBytes)
 {
-	printf("processRequestVREventsCommand\n");
+	// printf("processRequestVREventsCommand\n");
 	bool hasStatus = true;
 	//BT_PROFILE("CMD_REQUEST_VR_EVENTS_DATA");
 	serverStatusOut.m_sendVREvents.m_numVRControllerEvents = 0;
@@ -5152,7 +5154,7 @@ bool PhysicsServerCommandProcessor::processRequestVREventsCommand(const struct S
 
 bool PhysicsServerCommandProcessor::processRequestAndSetVREventsCommand(const struct SharedMemoryCommand& clientCmd, struct SharedMemoryStatus& serverStatusOut, char* bufferServerToClient, int bufferSizeInBytes)
 {
-	printf("processRequestVREventsCommandinit\n");
+	// printf("processRequestVREventsCommandinit\n");
 	bool hasStatus = true;
 	//BT_PROFILE("CMD_REQUEST_VR_EVENTS_DATA");
 	serverStatusOut.m_sendVREvents.m_numVRControllerEvents = 0;
@@ -5162,20 +5164,6 @@ bool PhysicsServerCommandProcessor::processRequestAndSetVREventsCommand(const st
 		b3VRControllerEvent& event = m_data->m_vrControllerEvents.m_vrEvents[i];
 		if (i==0)
 		{
-			// if (startTeleport == 0){
-			// 	startTeleport = 1;
-			// }
-			// else{
-			// 	gVRTeleportPos1_prev[0] = gVRTeleportPos1_init[0];
-			// 	gVRTeleportPos1_prev[1] = gVRTeleportPos1_init[1];
-			// 	gVRTeleportPos1_prev[2] = gVRTeleportPos1_init[2];
-
-			// 	gVRTeleportOrn_prev[0] = gVRTeleportOrn_init[0]; 
-			// 	gVRTeleportOrn_prev[1] = gVRTeleportOrn_init[1];
-			// 	gVRTeleportOrn_prev[2] = gVRTeleportOrn_init[2];
-			// 	gVRTeleportOrn_prev[3] = gVRTeleportOrn_init[3];
-			// }
-
 			btTransform trTotal_init;
 			trTotal_init.setOrigin(btVector3(event.m_pos[0], event.m_pos[1], event.m_pos[2]));
 			trTotal_init.setRotation(btQuaternion(event.m_orn[0], event.m_orn[1], event.m_orn[2], event.m_orn[3]));
@@ -5199,24 +5187,22 @@ bool PhysicsServerCommandProcessor::processRequestAndSetVREventsCommand(const st
 			btTransform tr2_transform = tr2 * tr2_init.inverse();
 
 			btTransform trTotal = tr2_transform * tr2a_transform * trTotal_init;
-
-
 			
-			printf("EventVRTeleportPosition");
-			printf("PosX=%f\n", event.m_pos[0]);
-			printf("PosY=%f\n", event.m_pos[1]);
-			printf("PosZ=%f\n", event.m_pos[2]);
+			// printf("EventVRTeleportPosition");
+			// printf("PosX=%f\n", event.m_pos[0]);
+			// printf("PosY=%f\n", event.m_pos[1]);
+			// printf("PosZ=%f\n", event.m_pos[2]);
 
-			printf("EventVRTeleportPosition");
-			printf("OrientRoll=%f\n", event.m_orn[0]);
-			printf("OrientPitch=%f\n", event.m_orn[1]);
-			printf("OrientYaw=%f\n", event.m_orn[2]);
-			printf("OrientYaw=%f\n", event.m_orn[3]);
+			// printf("EventVRTeleportPosition");
+			// printf("OrientRoll=%f\n", event.m_orn[0]);
+			// printf("OrientPitch=%f\n", event.m_orn[1]);
+			// printf("OrientYaw=%f\n", event.m_orn[2]);
+			// printf("OrientYaw=%f\n", event.m_orn[3]);
 
-			printf("OffsetVRTeleportPosition");
-			printf("PosX=%f\n", clientCmd.m_CameraOffsetArguments.m_PosOffset[0]);
-			printf("PosY=%f\n", clientCmd.m_CameraOffsetArguments.m_PosOffset[1]);
-			printf("PosZ=%f\n", clientCmd.m_CameraOffsetArguments.m_PosOffset[2]);
+			// printf("OffsetVRTeleportPosition");
+			// printf("PosX=%f\n", clientCmd.m_CameraOffsetArguments.m_PosOffset[0]);
+			// printf("PosY=%f\n", clientCmd.m_CameraOffsetArguments.m_PosOffset[1]);
+			// printf("PosZ=%f\n", clientCmd.m_CameraOffsetArguments.m_PosOffset[2]);
 
 			double pos[3];
 			pos[0] = -trTotal.getOrigin()[0];
@@ -5236,20 +5222,10 @@ bool PhysicsServerCommandProcessor::processRequestAndSetVREventsCommand(const st
 			prevQuat.getEulerZYX(yaw, pitch, roll);
 			btQuaternion prevOrient;
 			prevOrient.setEulerZYX(-(yaw-3.141592653589793), 0, 0);
-			// prevOrient.setEulerZYX(0, 0, 0);
 			orn[0] = prevOrient[0];
 			orn[1] = prevOrient[1];
 			orn[2] = prevOrient[2];
 			orn[3] = prevOrient[3];
-
-
-			// if (clientCmd.m_updateFlags & VR_CAMERA_ROOT_ORIENTATION)
-			// {
-			// 	orn[0] = clientCmd.m_CameraOffsetArguments.m_OrnOffset[0];
-			// 	orn[1] = clientCmd.m_CameraOffsetArguments.m_OrnOffset[1];
-			// 	orn[2] = clientCmd.m_CameraOffsetArguments.m_OrnOffset[2];
-			// 	orn[3] = clientCmd.m_CameraOffsetArguments.m_OrnOffset[3];
-			// }
 			
 			gVRTeleportPos1_init[0] = pos[0];
 			gVRTeleportPos1_init[1] = pos[1];
@@ -5259,9 +5235,6 @@ bool PhysicsServerCommandProcessor::processRequestAndSetVREventsCommand(const st
 			gVRTeleportOrn_init[1] = orn[1];
 			gVRTeleportOrn_init[2] = orn[2];
 			gVRTeleportOrn_init[3] = orn[3];
-
-			// btQuaternion tempOrient(gVRTeleportOrn_init[0], gVRTeleportOrn_init[1], gVRTeleportOrn_init[2], gVRTeleportOrn_init[3]);
-			// tempOrient.getEulerZYX(yaw, pitch, roll);
 
 			printf("InitVRTeleportPosition");
 			printf("PosX=%f\n", gVRTeleportPos1_init[0]);
@@ -7640,8 +7613,7 @@ bool PhysicsServerCommandProcessor::processLoadClothPatchCommand(const struct Sh
     }
 
     psb->setSoftBodyColor(btVector4(loadClothPatchArgs.m_colorRGBA[0], loadClothPatchArgs.m_colorRGBA[1], loadClothPatchArgs.m_colorRGBA[2], loadClothPatchArgs.m_colorRGBA[3]));		
-    psb->setSoftBodyLineColor(btVector4(loadClothPatchArgs.m_colorLineRGBA[0], loadClothPatchArgs.m_colorLineRGBA[1], loadClothPatchArgs.m_colorLineRGBA[2], loadClothPatchArgs.m_colorLineRGBA[3]));		
-
+    psb->setSoftBodyLineColor(btVector4(loadClothPatchArgs.m_colorLineRGBA[0], loadClothPatchArgs.m_colorLineRGBA[1], loadClothPatchArgs.m_colorLineRGBA[2], loadClothPatchArgs.m_colorLineRGBA[3]));
     m_data->m_dynamicsWorld->addSoftBody(psb);
     m_data->m_guiHelper->createCollisionShapeGraphicsObject(psb->getCollisionShape());
     //m_data->m_guiHelper->autogenerateGraphicsObjects(this->m_data->m_dynamicsWorld);
@@ -7664,6 +7636,11 @@ bool PhysicsServerCommandProcessor::processLoadClothPatchCommand(const struct Sh
 
 bool PhysicsServerCommandProcessor::processLoadSoftBodyCommand(const struct SharedMemoryCommand& clientCmd, struct SharedMemoryStatus& serverStatusOut, char* bufferServerToClient, int bufferSizeInBytes)
 {
+    // InternalBodyHandle* bodyHandleRigid = m_data->m_bodyHandles.getHandle(1);
+    // btMultiBody* bodyRigid = bodyHandleRigid->m_multiBody;
+    // bodyRigid->getLink(8).m_jointLowerLimit = -0.05;
+    // bodyRigid->getLink(8).m_jointUpperLimit = 0.05;
+
 	serverStatusOut.m_type = CMD_LOAD_SOFT_BODY_FAILED;
 	bool hasStatus = true;
 #ifndef SKIP_SOFT_BODY_MULTI_BODY_DYNAMICS_WORLD
@@ -7723,22 +7700,53 @@ bool PhysicsServerCommandProcessor::processLoadSoftBodyCommand(const struct Shar
 			int numTris = indices.size() / 3;
 			if (numTris > 0)
 			{
-              	btSoftBody* psb = btSoftBodyHelpers::CreateFromTriMesh(m_data->m_dynamicsWorld->getWorldInfo(), &vertices[0], &indices[0], numTris);
+                // const int numX = 31;
+                // const int numY = 31;
+                // const int fixed = 0; // 3;
+                // btSoftBody* psb = btSoftBodyHelpers::CreatePatch(m_data->m_dynamicsWorld->getWorldInfo(), btVector3(-0.5, 0, 0), btVector3(0.5, 0, 0), btVector3(-0.5, 1, 0), btVector3(0.5, 1, 0), numX, numY, fixed, true);
+				btSoftBody* psb = btSoftBodyHelpers::CreateFromTriMesh(m_data->m_dynamicsWorld->getWorldInfo(), &vertices[0], &indices[0], numTris);
 				btSoftBody::Material* pm = psb->appendMaterial();
 				// pm->m_kLST = 0.5;
 				pm->m_flags -= btSoftBody::fMaterial::DebugDraw;
 				psb->generateBendingConstraints(2, pm);
 				psb->m_cfg.piterations = 20;
 				psb->m_cfg.kDF = 0.5;
-
+                // psb->m_cfg.kCHR = 1.0;
+                // psb->m_cfg.kKHR = 1.0;
+                // psb->m_cfg.kAHR = 1.0;
 				psb->randomizeConstraints();
 				psb->rotate(btQuaternion(0.70711, 0, 0, 0.70711));
 				psb->translate(btVector3(-0.05, 0, 1.0));
 				psb->scale(btVector3(scale, scale, scale));
 
+                // InternalBodyHandle* bodyHandleRigid1 = m_data->m_bodyHandles.getHandle(1);
+                // btRigidBody* bodyRigid1 = bodyHandleRigid1->m_rigidBody;
+                // InternalBodyHandle* bodyHandleRigid2 = m_data->m_bodyHandles.getHandle(2);
+                // btRigidBody* bodyRigid2 = bodyHandleRigid2->m_rigidBody;
+                // InternalBodyHandle* bodyHandleRigid3 = m_data->m_bodyHandles.getHandle(3);
+                // btRigidBody* bodyRigid3 = bodyHandleRigid3->m_rigidBody;
+                // InternalBodyHandle* bodyHandleRigid4 = m_data->m_bodyHandles.getHandle(4);
+                // btRigidBody* bodyRigid4 = bodyHandleRigid4->m_rigidBody;
+                // const btVector3 localPivot = btVector3(0, 0, 0);
+                // bool disableCollisionBetweenLinkedBodies = true;
+                // btScalar influence = 1;
+                // psb->appendAnchor(0, bodyRigid1, disableCollisionBetweenLinkedBodies, influence);
+                // psb->appendAnchor(30, bodyRigid2, disableCollisionBetweenLinkedBodies, influence);
+                // psb->appendAnchor(960, bodyRigid3, disableCollisionBetweenLinkedBodies, influence);
+                // psb->appendAnchor(930, bodyRigid4, disableCollisionBetweenLinkedBodies, influence);
+                // psb->appendAnchor(0, bodyRigid1, disableCollisionBetweenLinkedBodies, influence);
+                // psb->appendAnchor(61, bodyRigid2, disableCollisionBetweenLinkedBodies, influence);
+                // psb->appendAnchor(3843, bodyRigid3, disableCollisionBetweenLinkedBodies, influence);
+                // psb->appendAnchor(3782, bodyRigid4, disableCollisionBetweenLinkedBodies, influence);
+
 				psb->setTotalMass(mass, true);
 				psb->getCollisionShape()->setMargin(collisionMargin);
 				psb->getCollisionShape()->setUserPointer(psb);
+
+                // psb->setMass(0, 0);
+                // psb->setMass(30, 0);
+                // psb->setMass(960, 0);
+                // psb->setMass(930, 0);
 
 				m_data->m_dynamicsWorld->addSoftBody(psb);
 				m_data->m_guiHelper->createCollisionShapeGraphicsObject(psb->getCollisionShape());
@@ -8002,10 +8010,8 @@ bool PhysicsServerCommandProcessor::processForwardDynamicsCommand(const struct S
 			}
 		}
 	}
-	btScalar deltaTimeScaled = m_data->m_physicsDeltaTime * simTimeScalingFactor;
 
-	// printf("m_data->m_numSimulationSubSteps: %d\n", m_data->m_numSimulationSubSteps);
-	// printf("deltaTimeScaled: %d, %d\n", deltaTimeScaled, m_data->m_simulationTimestamp);
+	btScalar deltaTimeScaled = m_data->m_physicsDeltaTime * simTimeScalingFactor;
 
 	int numSteps = 0;
 	if (m_data->m_numSimulationSubSteps > 0)
@@ -8018,6 +8024,7 @@ bool PhysicsServerCommandProcessor::processForwardDynamicsCommand(const struct S
 		numSteps = m_data->m_dynamicsWorld->stepSimulation(deltaTimeScaled, 0);
                 m_data->m_simulationTimestamp += deltaTimeScaled;
 	}
+
 	if (numSteps > 0)
 	{
 		addTransformChangedNotifications();

@@ -513,7 +513,6 @@ void addJointInfoFromConstraint(int linkIndex, const T* con, U* bodyJoints, bool
 const SharedMemoryStatus* PhysicsClientSharedMemory::processServerStatus()
 {
 	// SharedMemoryStatus* stat = 0;
-
 	if (!m_data->m_testBlock1)
 	{
 		m_data->m_lastServerStatus.m_type = CMD_SHARED_MEMORY_NOT_INITIALIZED;

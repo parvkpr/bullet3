@@ -66,6 +66,7 @@ int main(int argc, char* argv[])
 		b3CommandLineArgs args(argc, argv);
 		b3Clock clock;
 		args.GetCmdLineArgument("minUpdateTimeMicroSecs", gMinUpdateTimeMicroSecs);
+		printf("gMinUpdateTimeMicroSecs: %d\n", gMinUpdateTimeMicroSecs);
 
 		ExampleEntriesAll examples;
 		examples.initExampleEntries();

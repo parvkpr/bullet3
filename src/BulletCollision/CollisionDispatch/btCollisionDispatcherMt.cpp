@@ -121,7 +121,6 @@ struct CollisionDispatcherUpdater : public btIParallelForBody
 
 void btCollisionDispatcherMt::dispatchAllCollisionPairs(btOverlappingPairCache* pairCache, const btDispatcherInfo& info, btDispatcher* dispatcher)
 {
-	printf("here???????????????????????\n");
 	int pairCount = pairCache->getNumOverlappingPairs();
 	if (pairCount == 0)
 	{

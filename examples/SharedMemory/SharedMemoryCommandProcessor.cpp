@@ -58,7 +58,7 @@ SharedMemoryCommandProcessor::~SharedMemoryCommandProcessor()
 
 bool SharedMemoryCommandProcessor::connect()
 {
-	printf("SharedMemoryCommandProcessor::connect()");
+	// printf("SharedMemoryCommandProcessor::connect()");
 	if (m_data->m_isConnected)
 		return true;
 
@@ -224,7 +224,7 @@ void SharedMemoryCommandProcessor::setSharedMemoryInterface(class SharedMemoryIn
 
 void SharedMemoryCommandProcessor::setSharedMemoryKey(int key)
 {
-	printf("shared memory command process set key");
+	// printf("shared memory command process set key");
 	m_data->m_sharedMemoryKey = key;
 }
 

@@ -42,6 +42,8 @@ int gGraspingController = -1;
 extern btScalar simTimeScalingFactor;
 bool gBatchUserDebugLines = true;
 
+static int num_updates = 0;
+
 const char* startFileNameVR = "0_VRDemoSettings.txt";
 
 #include <vector>
@@ -232,7 +234,7 @@ float clampedDeltaTime = 0.2;
 
 void MotionThreadFunc(void* userPtr, void* lsMemory)
 {
-	printf("MotionThreadFunc thread started\n");
+	// printf("MotionThreadFunc thread started\n");
 	//MotionThreadLocalStorage* localStorage = (MotionThreadLocalStorage*) lsMemory;
 
 	MotionArgs* args = (MotionArgs*)userPtr;
@@ -1644,7 +1646,7 @@ public:
 
 	virtual void setSharedMemoryKey(int key)
 	{
-		printf("physicsserverexample shared memory key");
+		// printf("physicsserverexample shared memory key");
 		m_physicsServer.setSharedMemoryKey(key);
 	}
 
@@ -1883,7 +1885,6 @@ void PhysicsServerExample::exitPhysics()
 		}
 		//we need to call 'stepSimulation' to make sure that
 		//other threads get out of blocking state (workerThreadWait)
-		printf("end");
 		stepSimulation(0);
 	};
 
@@ -2457,11 +2458,10 @@ void PhysicsServerExample::updateGraphics()
 
 void PhysicsServerExample::stepSimulation(float deltaTime)
 {
-	printf("step simulation physicsserverexample\n");
+	num_updates += 1;
+	// printf("step simulation physicsserverexample: %d,  %d\n", deltaTime, num_updates);
 	BT_PROFILE("PhysicsServerExample::stepSimulation");
-
 	//this->m_physicsServer.processClientCommands();
-
 	for (int i = m_multiThreadedHelper->m_userDebugLines.size() - 1; i >= 0; i--)
 	{
 		if (m_multiThreadedHelper->m_userDebugLines[i].m_lifeTime)
@@ -2487,14 +2487,21 @@ void PhysicsServerExample::stepSimulation(float deltaTime)
 			}
 		}
 	}
-	updateGraphics();
 
+	b3Clock clock1;
+	clock1.reset();
+	updateGraphics();
+	// printf("updateGraphics clock:  %d\n", clock1.getTimeMicroseconds());
+
+	b3Clock clock2;
+	clock2.reset();
 	{
 		if (m_multiThreadedHelper->m_childGuiHelper->getRenderInterface())
 		{
 			m_multiThreadedHelper->m_childGuiHelper->getRenderInterface()->writeTransforms();
 		}
 	}
+	// printf("getRenderInterface clock:  %d\n", clock2.getTimeMicroseconds());
 }
 
 static float vrOffset[16] = {1, 0, 0, 0,
@@ -2797,6 +2804,8 @@ void PhysicsServerExample::renderScene()
 		}
 #endif  //BT_ENABLE_VR
 	}
+
+	// printf("render scene physicsserver\n");
 	///debug rendering
 	//m_args[0].m_cs->lock();
 
@@ -2831,20 +2840,25 @@ void PhysicsServerExample::renderScene()
 
 	if (m_multiThreadedHelper->m_childGuiHelper->getRenderInterface())
 	{
+		// printf("m_multiThreadedHelper physicsserver\n");
 		m_multiThreadedHelper->m_childGuiHelper->getRenderInterface()->getActiveCamera()->setVRCameraOffsetTransform(vrOffset);
+		// printf("m_multiThreadedHelper physicsserver f\n");
 	}
 	if (gEnableRendering)
 	{
+		// printf("m_physicsServer physicsserver\n");
 		int renderFlags = 0;
 		if (!gEnableSyncPhysicsRendering)
 		{
 			renderFlags |= 1;  //COV_DISABLE_SYNC_RENDERING;
 		}
 		m_physicsServer.renderScene(renderFlags);
+		// printf("m_physicsServer renderScene\n");
 	}
 
 	if (gEnablePicking)
 	{
+		// printf("gEnablePicking physicsserver\n");
 		for (int i = 0; i < MAX_VR_CONTROLLERS; i++)
 		{
 			if (m_args[0].m_isVrControllerPicking[i] || m_args[0].m_isVrControllerDragging[i])
@@ -2867,10 +2881,13 @@ void PhysicsServerExample::renderScene()
 				m_guiHelper->getAppInterface()->m_renderer->drawLine(from, toZ, color, width);
 			}
 		}
+		// printf("gEnablePicking getAppInterface\n");
 	}
 
+	// printf("m_guiHelper getAppInterface\n");
 	if (m_guiHelper->getAppInterface()->m_renderer->getActiveCamera()->isVRCamera())
 	{
+
 		if (!m_physicsServer.isRealTimeSimulationEnabled() && !gActivedVRRealTimeSimulation)
 		{
 			//only activate real-time simulation once (for backward compatibility)
@@ -2878,6 +2895,7 @@ void PhysicsServerExample::renderScene()
 			m_physicsServer.enableRealTimeSimulation(1);
 		}
 	}
+	// printf("m_guiHelper getAppInterface f\n");
 
 	drawUserDebugLines();
 

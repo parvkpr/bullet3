@@ -327,12 +327,9 @@ static PyObject* pybullet_stepSimulation(PyObject* self, PyObject* args, PyObjec
 
 		if (b3CanSubmitCommand(sm))
 		{
-			printf("PyBullet step simulation");
 			statusHandle = b3SubmitClientCommandAndWaitStatus(
 				sm, b3InitStepSimulationCommand(sm));
-			printf("finish PyBullet step simulation");
 			statusType = b3GetStatusType(statusHandle);
-			printf("getstatus finish");
 		}
 	}
 
@@ -1975,9 +1972,6 @@ static PyObject* pybullet_loadCloth(PyObject* self, PyObject* args, PyObject* ke
 		b3SharedMemoryCommandHandle command = b3LoadClothCommandInit(sm, fileName, scale, mass, positionArray, orientationArray, bodyAnchorId, anchorsArray, collisionMargin, rgbaColorArray, rgbaLineColorArray);
 		statusHandle = b3SubmitClientCommandAndWaitStatus(sm, command);
 		statusType = b3GetStatusType(statusHandle);
-
-		statusHandle = b3SubmitClientCommandAndWaitStatus(sm, command);
-		statusType = b3GetStatusType(statusHandle);
 		if (statusType != CMD_LOAD_SOFT_BODY_COMPLETED)
 		{
 			PyErr_SetString(SpamError, "Cannot load cloth.");
@@ -2314,7 +2308,7 @@ static PyObject* pybullet_loadClothPatch(PyObject* self, PyObject* args, PyObjec
 
     b3SharedMemoryStatusHandle statusHandle;
     int statusType;
-    b3SharedMemoryCommandHandle command = b3LoadClothPatchCommandInit(sm, numX, numY, corner00Array, corner10Array, corner01Array, corner11Array, scale, mass, positionArray, orientationArray, bodyAnchorIdsArray, anchorsArray, collisionMargin, rgbaColorArray, rgbaLineColorArray);
+	b3SharedMemoryCommandHandle command = b3LoadClothPatchCommandInit(sm, numX, numY, corner00Array, corner10Array, corner01Array, corner11Array, scale, mass, positionArray, orientationArray, bodyAnchorIdsArray, anchorsArray, collisionMargin, rgbaColorArray, rgbaLineColorArray);
 
     statusHandle = b3SubmitClientCommandAndWaitStatus(sm, command);
     statusType = b3GetStatusType(statusHandle);

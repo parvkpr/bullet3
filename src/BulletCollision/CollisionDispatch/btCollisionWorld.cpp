@@ -220,9 +220,13 @@ void btCollisionWorld::computeOverlappingPairs()
 void btCollisionWorld::performDiscreteCollisionDetection()
 {
 	BT_PROFILE("performDiscreteCollisionDetection");
+
 	btDispatcherInfo& dispatchInfo = getDispatchInfo();
+
 	updateAabbs();
+
 	computeOverlappingPairs();
+
 	btDispatcher* dispatcher = getDispatcher();
 	{
 		BT_PROFILE("dispatchAllCollisionPairs");

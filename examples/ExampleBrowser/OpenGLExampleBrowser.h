@@ -3,6 +3,8 @@
 
 #include "ExampleBrowserInterface.h"
 
+//extern int update_number = 0;
+
 class OpenGLExampleBrowser : public ExampleBrowserInterface
 {
 	struct OpenGLExampleBrowserInternalData* m_internalData;

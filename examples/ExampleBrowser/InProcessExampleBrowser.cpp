@@ -210,7 +210,7 @@ static double gMinUpdateTimeMicroSecs = 4000.;
 
 void ExampleBrowserThreadFunc(void* userPtr, void* lsMemory)
 {
-	printf("ExampleBrowserThreadFunc started\n");
+	// printf("ExampleBrowserThreadFunc started\n");
 
 	ExampleBrowserThreadLocalStorage* localStorage = (ExampleBrowserThreadLocalStorage*)lsMemory;
 
@@ -223,7 +223,6 @@ void ExampleBrowserThreadFunc(void* userPtr, void* lsMemory)
 		gMinUpdateTimeMicroSecs = minUpdateMs;
 	}
 	b3Clock clock;
-
 	ExampleEntriesPhysicsServer examples;
 	examples.initExampleEntries();
 
@@ -238,6 +237,8 @@ void ExampleBrowserThreadFunc(void* userPtr, void* lsMemory)
 		args->m_cs->setSharedParam(0, eExampleBrowserIsInitialized);
 		args->m_cs->unlock();
 
+		
+		int num_update_call = 0;
 		do
 		{
 			clock.usleep(0);
@@ -257,13 +258,13 @@ void ExampleBrowserThreadFunc(void* userPtr, void* lsMemory)
 				else
 				{
 					//B3_PROFILE("exampleBrowser->update");
-					clock.reset();
+					num_update_call += 1;
+					// printf("UPDATED start!!!: %d\n", num_update_call);
 					exampleBrowser->updateGraphics();
 					exampleBrowser->update(deltaTimeInSeconds);
 				}
 			}
-
-		} while (!exampleBrowser->requestedExit() && (args->m_cs->getSharedParam(0) != eRequestTerminateExampleBrowser));
+		} while (!exampleBrowser->requestedExit() && (args->m_cs->getSharedParam(0) != eRequestTerminateExampleBrowser));	
 	}
 	else
 	{
@@ -276,7 +277,7 @@ void ExampleBrowserThreadFunc(void* userPtr, void* lsMemory)
 	args->m_cs->lock();
 	args->m_cs->setSharedParam(0, eExampleBrowserHasTerminated);
 	args->m_cs->unlock();
-	printf("finished\n");
+	// printf("finished\n");
 	//do nothing
 }
 
