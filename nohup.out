@@ -1,0 +1,7 @@
+Obtaining file:///home/henry/git/zackory/assistive-gym-vr/bullet3
+Installing collected packages: pybullet
+  Found existing installation: pybullet 2.4.8
+    Uninstalling pybullet-2.4.8:
+      Successfully uninstalled pybullet-2.4.8
+  Running setup.py develop for pybullet
+Successfully installed pybullet
