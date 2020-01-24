@@ -197,6 +197,8 @@ struct MotionArgs
 			m_isVrControllerReleasing[i] = false;
 			m_isVrControllerTeleporting[i] = false;
 		}
+		m_vrHMDPos.setValue(0, 0, 0);
+		m_vrHMDOrn.setValue(0, 0, 0, 1);
 	}
 	b3CriticalSection* m_cs;
 	b3CriticalSection* m_cs2;
@@ -209,7 +211,8 @@ struct MotionArgs
 
 	b3VRControllerEvent m_vrControllerEvents[MAX_VR_CONTROLLERS];
 	b3VRControllerEvent m_sendVrControllerEvents[MAX_VR_CONTROLLERS];
-
+	btVector3 m_sendvrHMDPos;
+	btQuaternion m_sendvrHMDOrn;
 	btAlignedObjectArray<b3KeyboardEvent> m_keyboardEvents;
 	btAlignedObjectArray<b3KeyboardEvent> m_sendKeyEvents;
 	btAlignedObjectArray<b3MouseEvent> m_allMouseEvents;
@@ -219,6 +222,8 @@ struct MotionArgs
 
 	btVector3 m_vrControllerPos[MAX_VR_CONTROLLERS];
 	btQuaternion m_vrControllerOrn[MAX_VR_CONTROLLERS];
+	btVector3 m_vrHMDPos;
+	btQuaternion m_vrHMDOrn;
 	bool m_isVrControllerPicking[MAX_VR_CONTROLLERS];
 	bool m_isVrControllerDragging[MAX_VR_CONTROLLERS];
 	bool m_isVrControllerReleasing[MAX_VR_CONTROLLERS];
@@ -341,6 +346,10 @@ void MotionThreadFunc(void* userPtr, void* lsMemory)
 				{
 					if (args->m_vrControllerEvents[i].m_numButtonEvents + args->m_vrControllerEvents[i].m_numMoveEvents)
 					{
+						if (i == 0){
+							args->m_sendvrHMDPos = args->m_vrHMDPos;
+							args->m_sendvrHMDOrn = args->m_vrHMDOrn;
+						}
 						args->m_sendVrControllerEvents[numSendVrControllers++] =
 							args->m_vrControllerEvents[i];
 
@@ -424,7 +433,7 @@ void MotionThreadFunc(void* userPtr, void* lsMemory)
 				args->m_csGUI->unlock();
 
 				{
-					args->m_physicsServerPtr->stepSimulationRealTime(deltaTimeInSeconds, args->m_sendVrControllerEvents, numSendVrControllers, keyEvents, args->m_sendKeyEvents.size(), mouseEvents, args->m_sendMouseEvents.size());
+					args->m_physicsServerPtr->stepSimulationRealTime(deltaTimeInSeconds, args->m_sendvrHMDPos, args->m_sendvrHMDOrn, args->m_sendVrControllerEvents, numSendVrControllers, keyEvents, args->m_sendKeyEvents.size(), mouseEvents, args->m_sendMouseEvents.size());
 				}
 				{
 					args->m_csGUI->lock();
@@ -1666,9 +1675,9 @@ public:
 		// m_physicsServer.setVRTeleportPosition(btVector3(0, 0, 0));
 		btVector3 vrTeleportPos = m_physicsServer.getVRTeleportPosition();
 
-		printf("camPosX=%f\n", vrTeleportPos[0]);
-		printf("camPosY=%f\n", vrTeleportPos[1]);
-		printf("camPosZ=%f\n", vrTeleportPos[2]);
+		// printf("camPosX=%f\n", vrTeleportPos[0]);
+		// printf("camPosY=%f\n", vrTeleportPos[1]);
+		// printf("camPosZ=%f\n", vrTeleportPos[2]);
 
 		m_physicsServer.setVRTeleportPosition(vrTeleportPos);
 
@@ -1687,10 +1696,10 @@ public:
 		
 		btQuaternion vrTeleportOrient = m_physicsServer.getVRTeleportOrientation();
 
-		printf("camRotX=%f\n", vrTeleportOrient[0]);
-		printf("camRotY=%f\n", vrTeleportOrient[1]);
-		printf("camRotZ=%f\n", vrTeleportOrient[2]);
-		printf("camRotW=%f\n", vrTeleportOrient[3]);
+		// printf("camRotX=%f\n", vrTeleportOrient[0]);
+		// printf("camRotY=%f\n", vrTeleportOrient[1]);
+		// printf("camRotZ=%f\n", vrTeleportOrient[2]);
+		// printf("camRotW=%f\n", vrTeleportOrient[3]);
 
 		if (args.CheckCmdLineFlag("realtimesimulation"))
 		{
@@ -3214,6 +3223,13 @@ void PhysicsServerExample::vrHMDMoveCallback(int controllerId, float pos[4], flo
 	m_args[0].m_vrControllerEvents[controllerId].m_orn[1] = trTotal.getRotation()[1];
 	m_args[0].m_vrControllerEvents[controllerId].m_orn[2] = trTotal.getRotation()[2];
 	m_args[0].m_vrControllerEvents[controllerId].m_orn[3] = trTotal.getRotation()[3];
+	m_args[0].m_vrHMDPos[0] = pos[0];
+	m_args[0].m_vrHMDPos[1] = pos[1];
+	m_args[0].m_vrHMDPos[2] = pos[2];
+	m_args[0].m_vrHMDOrn[0] = orn[0];
+	m_args[0].m_vrHMDOrn[1] = orn[1];
+	m_args[0].m_vrHMDOrn[2] = orn[2];
+	m_args[0].m_vrHMDOrn[3] = orn[3];
 	m_args[0].m_vrControllerEvents[controllerId].m_numMoveEvents++;
 	m_args[0].m_csGUI->unlock();	
 }

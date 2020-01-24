@@ -5161,7 +5161,6 @@ B3_SHARED_API int b3GetStatusInverseKinematicsJointPositions(b3SharedMemoryStatu
 
 B3_SHARED_API b3SharedMemoryCommandHandle b3RequestVREventsCommandInit(b3PhysicsClientHandle physClient)
 {
-	b3Printf("b3RequestVREventsCommandInit\n");
 	PhysicsClient* cl = (PhysicsClient*)physClient;
 	b3Assert(cl);
 	b3Assert(cl->canSubmitCommand());
@@ -5197,18 +5196,18 @@ B3_SHARED_API void b3VREventsSetDeviceTypeFilter(b3SharedMemoryCommandHandle com
 	}
 }
 
+B3_SHARED_API double b3GetHMDData(b3PhysicsClientHandle physClient)
+{
+	PhysicsClient* cl = (PhysicsClient*)physClient;
+	return cl->getCachedHMDData();
+}
+
 B3_SHARED_API void b3SetVRCameraPositionOffset(b3SharedMemoryCommandHandle commandHandle, const double pos_offset[3])
 {
 	struct SharedMemoryCommand* command = (struct SharedMemoryCommand*)commandHandle;
 	b3Assert(command);
 	b3Assert(command->m_type == CMD_REQUEST_AND_SET_VR_EVENTS_DATA);
 	command->m_updateFlags |= VR_CAMERA_POSITION_OFFSET;
-
-	printf("position offset\n");
-	printf("OrientRoll=%f\n", pos_offset[0]);
-	printf("OrientPitch=%f\n", pos_offset[1]);
-	printf("OrientYaw=%f\n", pos_offset[2]);
-
 	command->m_CameraOffsetArguments.m_PosOffset[0] = pos_offset[0];
 	command->m_CameraOffsetArguments.m_PosOffset[1] = pos_offset[1];
 	command->m_CameraOffsetArguments.m_PosOffset[2] = pos_offset[2];

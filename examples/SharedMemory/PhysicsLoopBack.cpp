@@ -201,6 +201,11 @@ void PhysicsLoopBack::getCachedVREvents(struct b3VREventsData* vrEventsData)
 	return m_data->m_physicsClient->getCachedVREvents(vrEventsData);
 }
 
+double PhysicsLoopBack::getCachedHMDData() const
+{
+	return m_data->m_physicsClient->getCachedHMDData();
+}
+
 void PhysicsLoopBack::getCachedKeyboardEvents(struct b3KeyboardEventsData* keyboardEventsData)
 {
 	return m_data->m_physicsClient->getCachedKeyboardEvents(keyboardEventsData);

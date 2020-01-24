@@ -78,6 +78,8 @@ public:
 
 	virtual void getCachedVREvents(struct b3VREventsData* vrEventsData);
 
+	virtual double getCachedHMDData() const;
+
 	virtual void getCachedKeyboardEvents(struct b3KeyboardEventsData* keyboardEventsData);
 
 	virtual void getCachedMouseEvents(struct b3MouseEventsData* mouseEventsData);

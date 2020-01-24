@@ -3501,6 +3501,11 @@ public static extern  void b3VREventsSetDeviceTypeFilter(IntPtr commandHandle, i
     [System.Runtime.InteropServices.DllImportAttribute(dllName, EntryPoint="b3GetVREventsData")]
 public static extern  void b3GetVREventsData(IntPtr physClient, ref b3VREventsData vrEventsData) ;
 
+    /// Return Type: double
+    ///physClient: b3PhysicsClientHandle->b3PhysicsClientHandle__*
+    [System.Runtime.InteropServices.DllImportAttribute(dllName, EntryPoint="b3GetHMDData")]
+public static extern  double b3GetHMDData(IntPtr physClient) ;
+
     /// Return Type: void
     ///commandHandle: b3SharedMemoryCommandHandle->b3SharedMemoryCommandHandle__*
     ///pos_offset: double*

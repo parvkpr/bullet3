@@ -214,9 +214,9 @@ void PhysicsServerSharedMemory::releaseSharedMemory()
 	disconnectSharedMemory(true);
 }
 
-void PhysicsServerSharedMemory::stepSimulationRealTime(double dtInSec, const struct b3VRControllerEvent* vrEvents, int numVREvents, const struct b3KeyboardEvent* keyEvents, int numKeyEvents, const struct b3MouseEvent* mouseEvents, int numMouseEvents)
+void PhysicsServerSharedMemory::stepSimulationRealTime(double dtInSec, const btVector3& vrHMDPos, const btQuaternion& vrHMDOrn, const struct b3VRControllerEvent* vrEvents, int numVREvents, const struct b3KeyboardEvent* keyEvents, int numKeyEvents, const struct b3MouseEvent* mouseEvents, int numMouseEvents)
 {
-	m_data->m_commandProcessor->stepSimulationRealTime(dtInSec, vrEvents, numVREvents, keyEvents, numKeyEvents, mouseEvents, numMouseEvents);
+	m_data->m_commandProcessor->stepSimulationRealTime(dtInSec, vrHMDPos, vrHMDOrn, vrEvents, numVREvents, keyEvents, numKeyEvents, mouseEvents, numMouseEvents);
 }
 
 void PhysicsServerSharedMemory::enableRealTimeSimulation(bool enableRealTimeSim)
@@ -317,11 +317,6 @@ const btVector3& PhysicsServerSharedMemory::getVRTeleportPosition_init() const
 	return m_data->m_commandProcessor->getVRTeleportPosition_init();
 }
 
-const btVector3& PhysicsServerSharedMemory::getVRTeleportPosition_prev() const
-{
-	return m_data->m_commandProcessor->getVRTeleportPosition_prev();
-}
-
 void PhysicsServerSharedMemory::setVRTeleportPosition(const btVector3& vrTeleportPos)
 {
 	m_data->m_commandProcessor->setVRTeleportPosition(vrTeleportPos);
@@ -335,11 +330,6 @@ const btQuaternion& PhysicsServerSharedMemory::getVRTeleportOrientation() const
 const btQuaternion& PhysicsServerSharedMemory::getVRTeleportOrientation_init() const
 {
 	return m_data->m_commandProcessor->getVRTeleportOrientation_init();
-}
-
-const btQuaternion& PhysicsServerSharedMemory::getVRTeleportOrientation_prev() const
-{
-	return m_data->m_commandProcessor->getVRTeleportOrientation_prev();
 }
 
 void PhysicsServerSharedMemory::setVRTeleportOrientation(const btQuaternion& vrTeleportOrn)

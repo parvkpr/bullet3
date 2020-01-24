@@ -6123,7 +6123,7 @@ static PyObject* pybullet_getVREvents(PyObject* self, PyObject* args, PyObject* 
 
 static PyObject* pybullet_setOriginCameraPositionAndOrientation(PyObject* self, PyObject* args, PyObject* keywds)
 {
-	printf("pybullet set origin camera position and orientation\n");
+	// printf("Set origin camera position and orientation\n");
 	b3SharedMemoryCommandHandle commandHandle;
 	b3SharedMemoryStatusHandle statusHandle;
 	int statusType;
@@ -6155,10 +6155,6 @@ static PyObject* pybullet_setOriginCameraPositionAndOrientation(PyObject* self, 
 
 	if (pybullet_internalSetVectord(PosObj, pos_offset))
 	{
-		printf("position offset");
-		printf("PosX=%f\n", pos_offset[0]);
-		printf("PosY=%f\n", pos_offset[1]);
-		printf("PosZ=%f\n", pos_offset[2]);
 		b3SetVRCameraPositionOffset(commandHandle, pos_offset);
 	}
 	if (pybullet_internalSetVector4d(OrnObj, orn_offset))
@@ -6174,6 +6170,7 @@ static PyObject* pybullet_setOriginCameraPositionAndOrientation(PyObject* self, 
 		struct b3VREventsData vrEvents;
 		PyObject* vrEventsObj;
 		int i = 0;
+		double HMDDistance = b3GetHMDData(sm);
 		b3GetVREventsData(sm, &vrEvents);
 
 		vrEventsObj = PyTuple_New(vrEvents.m_numControllerEvents);
@@ -6228,7 +6225,7 @@ static PyObject* pybullet_setOriginCameraPositionAndOrientation(PyObject* self, 
 
 			PyTuple_SetItem(vrEventsObj, i, vrEventObj);
 		}
-		return vrEventsObj;
+		return PyFloat_FromDouble(HMDDistance);
 	}
 
 	Py_INCREF(Py_None);

@@ -38,7 +38,7 @@ public:
 	virtual ~CommandProcessorInterface() {}
 
 	virtual void syncPhysicsToGraphics() = 0;
-	virtual void stepSimulationRealTime(double dtInSec, const struct b3VRControllerEvent* vrControllerEvents, int numVRControllerEvents, const struct b3KeyboardEvent* keyEvents, int numKeyEvents, const struct b3MouseEvent* mouseEvents, int numMouseEvents) = 0;
+	virtual void stepSimulationRealTime(double dtInSec, const btVector3& vrHMDPos, const btQuaternion& vrHMDOrn, const struct b3VRControllerEvent* vrControllerEvents, int numVRControllerEvents, const struct b3KeyboardEvent* keyEvents, int numKeyEvents, const struct b3MouseEvent* mouseEvents, int numMouseEvents) = 0;
 	virtual void enableRealTimeSimulation(bool enableRealTimeSim) = 0;
 	virtual bool isRealTimeSimulationEnabled() const = 0;
 
@@ -52,12 +52,10 @@ public:
 
 	virtual const btVector3& getVRTeleportPosition() const = 0;
 	virtual const btVector3& getVRTeleportPosition_init() const = 0;
-	virtual const btVector3& getVRTeleportPosition_prev() const = 0;
 	virtual void setVRTeleportPosition(const btVector3& vrReleportPos) = 0;
 
 	virtual const btQuaternion& getVRTeleportOrientation() const = 0;
 	virtual const btQuaternion& getVRTeleportOrientation_init() const = 0;
-	virtual const btQuaternion& getVRTeleportOrientation_prev() const = 0;
 	virtual void setVRTeleportOrientation(const btQuaternion& vrReleportOrn) = 0;
 
 	virtual void processClientCommands() = 0;

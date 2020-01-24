@@ -68,6 +68,8 @@ struct PhysicsDirectInternalData
 
 	btAlignedObjectArray<b3VRControllerEvent> m_cachedVREvents;
 
+	double m_cachedHMDData;
+
 	btAlignedObjectArray<b3KeyboardEvent> m_cachedKeyboardEvents;
 	btAlignedObjectArray<b3MouseEvent> m_cachedMouseEvents;
 
@@ -706,6 +708,7 @@ void PhysicsDirect::postProcessStatus(const struct SharedMemoryStatus& serverCmd
 			{
 				m_data->m_cachedVREvents[i] = serverCmd.m_sendVREvents.m_controllerEvents[i];
 			}
+			m_data->m_cachedHMDData = serverCmd.m_sendVREvents.m_HMDdis;
 			break;
 		}
 		case CMD_REQUEST_KEYBOARD_EVENTS_DATA_COMPLETED:
@@ -1455,6 +1458,11 @@ void PhysicsDirect::getCachedVREvents(struct b3VREventsData* vrEventsData)
 {
 	vrEventsData->m_numControllerEvents = m_data->m_cachedVREvents.size();
 	vrEventsData->m_controllerEvents = vrEventsData->m_numControllerEvents ? &m_data->m_cachedVREvents[0] : 0;
+}
+
+double PhysicsDirect::getCachedHMDData() const
+{
+	return m_data->m_cachedHMDData;
 }
 
 void PhysicsDirect::getCachedKeyboardEvents(struct b3KeyboardEventsData* keyboardEventsData)
