@@ -1,4 +1,5 @@
 #include "InProcessMemory.h"
+#include <stdio.h>
 
 #include "LinearMath/btHashMap.h"
 
