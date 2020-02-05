@@ -3504,7 +3504,7 @@ public static extern  void b3GetVREventsData(IntPtr physClient, ref b3VREventsDa
     /// Return Type: double
     ///physClient: b3PhysicsClientHandle->b3PhysicsClientHandle__*
     [System.Runtime.InteropServices.DllImportAttribute(dllName, EntryPoint="b3GetHMDData")]
-public static extern  double b3GetHMDData(IntPtr physClient) ;
+public static extern  int b3GetHMDData(IntPtr statusHandle, ref double HMDData) ;
 
     /// Return Type: void
     ///commandHandle: b3SharedMemoryCommandHandle->b3SharedMemoryCommandHandle__*

@@ -3196,6 +3196,10 @@ void PhysicsServerExample::vrHMDMoveCallback(int controllerId, float pos[4], flo
 		return;
 	}
 
+	// printf("vrHMDMoveCallback 1=%f\n", pos[0]);
+	// printf("vrHMDMoveCallback 2=%f\n", pos[1]);
+	// printf("vrHMDMoveCallback 3=%f\n", pos[2]);
+
 	//we may need to add some trLocal transform, to align the camera to our preferences
 	btTransform trLocal;
 	trLocal.setIdentity();

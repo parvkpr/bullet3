@@ -6170,62 +6170,77 @@ static PyObject* pybullet_setOriginCameraPositionAndOrientation(PyObject* self, 
 		struct b3VREventsData vrEvents;
 		PyObject* vrEventsObj;
 		int i = 0;
-		double HMDDistance = b3GetHMDData(sm);
+
+		double* HMDData = (double*)malloc(7 * sizeof(double));
+		int result;
+		result = b3GetHMDData(statusHandle, HMDData);
+
 		b3GetVREventsData(sm, &vrEvents);
 
-		vrEventsObj = PyTuple_New(vrEvents.m_numControllerEvents);
-		for (i = 0; i < vrEvents.m_numControllerEvents; i++)
-		{
-			int numFields = allAnalogAxes ? 9 : 8;
-			PyObject* vrEventObj = PyTuple_New(numFields);
+		// vrEventsObj = PyTuple_New(vrEvents.m_numControllerEvents);
+		// for (i = 0; i < vrEvents.m_numControllerEvents; i++)
+		// {
+		// 	int numFields = allAnalogAxes ? 9 : 8;
+		// 	PyObject* vrEventObj = PyTuple_New(numFields);
 
-			PyTuple_SetItem(vrEventObj, 0, PyInt_FromLong(vrEvents.m_controllerEvents[i].m_controllerId));
-			{
-				PyObject* posObj = PyTuple_New(3);
-				PyTuple_SetItem(posObj, 0, PyFloat_FromDouble(vrEvents.m_controllerEvents[i].m_pos[0]));
-				PyTuple_SetItem(posObj, 1, PyFloat_FromDouble(vrEvents.m_controllerEvents[i].m_pos[1]));
-				PyTuple_SetItem(posObj, 2, PyFloat_FromDouble(vrEvents.m_controllerEvents[i].m_pos[2]));
-				PyTuple_SetItem(vrEventObj, 1, posObj);
-			}
-			{
-				PyObject* ornObj = PyTuple_New(4);
-				PyTuple_SetItem(ornObj, 0, PyFloat_FromDouble(vrEvents.m_controllerEvents[i].m_orn[0]));
-				PyTuple_SetItem(ornObj, 1, PyFloat_FromDouble(vrEvents.m_controllerEvents[i].m_orn[1]));
-				PyTuple_SetItem(ornObj, 2, PyFloat_FromDouble(vrEvents.m_controllerEvents[i].m_orn[2]));
-				PyTuple_SetItem(ornObj, 3, PyFloat_FromDouble(vrEvents.m_controllerEvents[i].m_orn[3]));
-				PyTuple_SetItem(vrEventObj, 2, ornObj);
-			}
+		// 	PyTuple_SetItem(vrEventObj, 0, PyInt_FromLong(vrEvents.m_controllerEvents[i].m_controllerId));
+		// 	{
+		// 		PyObject* posObj = PyTuple_New(3);
+		// 		PyTuple_SetItem(posObj, 0, PyFloat_FromDouble(vrEvents.m_controllerEvents[i].m_pos[0]));
+		// 		PyTuple_SetItem(posObj, 1, PyFloat_FromDouble(vrEvents.m_controllerEvents[i].m_pos[1]));
+		// 		PyTuple_SetItem(posObj, 2, PyFloat_FromDouble(vrEvents.m_controllerEvents[i].m_pos[2]));
+		// 		PyTuple_SetItem(vrEventObj, 1, posObj);
+		// 	}
+		// 	{
+		// 		PyObject* ornObj = PyTuple_New(4);
+		// 		PyTuple_SetItem(ornObj, 0, PyFloat_FromDouble(vrEvents.m_controllerEvents[i].m_orn[0]));
+		// 		PyTuple_SetItem(ornObj, 1, PyFloat_FromDouble(vrEvents.m_controllerEvents[i].m_orn[1]));
+		// 		PyTuple_SetItem(ornObj, 2, PyFloat_FromDouble(vrEvents.m_controllerEvents[i].m_orn[2]));
+		// 		PyTuple_SetItem(ornObj, 3, PyFloat_FromDouble(vrEvents.m_controllerEvents[i].m_orn[3]));
+		// 		PyTuple_SetItem(vrEventObj, 2, ornObj);
+		// 	}
 
-			PyTuple_SetItem(vrEventObj, 3, PyFloat_FromDouble(vrEvents.m_controllerEvents[i].m_analogAxis));
-			PyTuple_SetItem(vrEventObj, 4, PyInt_FromLong(vrEvents.m_controllerEvents[i].m_numButtonEvents));
-			PyTuple_SetItem(vrEventObj, 5, PyInt_FromLong(vrEvents.m_controllerEvents[i].m_numMoveEvents));
-			{
-				PyObject* buttonsObj = PyTuple_New(MAX_VR_BUTTONS);
-				int b;
-				for (b = 0; b < MAX_VR_BUTTONS; b++)
-				{
-					PyObject* button = PyInt_FromLong(vrEvents.m_controllerEvents[i].m_buttons[b]);
-					PyTuple_SetItem(buttonsObj, b, button);
-				}
-				PyTuple_SetItem(vrEventObj, 6, buttonsObj);
-			}
-			PyTuple_SetItem(vrEventObj, 7, PyInt_FromLong(vrEvents.m_controllerEvents[i].m_deviceType));
+		// 	PyTuple_SetItem(vrEventObj, 3, PyFloat_FromDouble(vrEvents.m_controllerEvents[i].m_analogAxis));
+		// 	PyTuple_SetItem(vrEventObj, 4, PyInt_FromLong(vrEvents.m_controllerEvents[i].m_numButtonEvents));
+		// 	PyTuple_SetItem(vrEventObj, 5, PyInt_FromLong(vrEvents.m_controllerEvents[i].m_numMoveEvents));
+		// 	{
+		// 		PyObject* buttonsObj = PyTuple_New(MAX_VR_BUTTONS);
+		// 		int b;
+		// 		for (b = 0; b < MAX_VR_BUTTONS; b++)
+		// 		{
+		// 			PyObject* button = PyInt_FromLong(vrEvents.m_controllerEvents[i].m_buttons[b]);
+		// 			PyTuple_SetItem(buttonsObj, b, button);
+		// 		}
+		// 		PyTuple_SetItem(vrEventObj, 6, buttonsObj);
+		// 	}
+		// 	PyTuple_SetItem(vrEventObj, 7, PyInt_FromLong(vrEvents.m_controllerEvents[i].m_deviceType));
 
-			if (allAnalogAxes)
-			{
-				PyObject* buttonsObj = PyTuple_New(MAX_VR_ANALOG_AXIS * 2);
-				int b;
-				for (b = 0; b < MAX_VR_ANALOG_AXIS * 2; b++)
-				{
-					PyObject* axisVal = PyFloat_FromDouble(vrEvents.m_controllerEvents[i].m_auxAnalogAxis[b]);
-					PyTuple_SetItem(buttonsObj, b, axisVal);
-				}
-				PyTuple_SetItem(vrEventObj, 8, buttonsObj);
-			}
+		// 	if (allAnalogAxes)
+		// 	{
+		// 		PyObject* buttonsObj = PyTuple_New(MAX_VR_ANALOG_AXIS * 2);
+		// 		int b;
+		// 		for (b = 0; b < MAX_VR_ANALOG_AXIS * 2; b++)
+		// 		{
+		// 			PyObject* axisVal = PyFloat_FromDouble(vrEvents.m_controllerEvents[i].m_auxAnalogAxis[b]);
+		// 			PyTuple_SetItem(buttonsObj, b, axisVal);
+		// 		}
+		// 		PyTuple_SetItem(vrEventObj, 8, buttonsObj);
+		// 	}
 
-			PyTuple_SetItem(vrEventsObj, i, vrEventObj);
+		// 	PyTuple_SetItem(vrEventsObj, i, vrEventObj);
+		// }
+		PyObject* pylist;
+		pylist = PyTuple_New(7);
+		for (i = 0; i < 7; i++)
+		{	
+			printf("HMD data control%f\n", HMDData[i]);
+			PyTuple_SetItem(pylist, i,
+							PyFloat_FromDouble(HMDData[i]));
 		}
-		return PyFloat_FromDouble(HMDDistance);
+
+		free(HMDData);
+		return pylist;
+		// return PyFloat_FromDouble(HMDDistance);
 	}
 
 	Py_INCREF(Py_None);

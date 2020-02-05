@@ -914,6 +914,7 @@ struct SendVREvents
 	int m_numVRControllerEvents;
 	b3VRControllerEvent m_controllerEvents[MAX_VR_CONTROLLERS];
 	double m_HMDdis;
+	double m_HMDEvent[7];
 };
 
 struct SendKeyboardEvents

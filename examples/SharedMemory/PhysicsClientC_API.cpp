@@ -5196,10 +5196,21 @@ B3_SHARED_API void b3VREventsSetDeviceTypeFilter(b3SharedMemoryCommandHandle com
 	}
 }
 
-B3_SHARED_API double b3GetHMDData(b3PhysicsClientHandle physClient)
+// B3_SHARED_API int b3GetHMDData(b3SharedMemoryStatusHandle statusHandle, )
+// {
+// 	PhysicsClient* cl = (PhysicsClient*)physClient;
+// 	return cl->getCachedHMDData();
+// }
+
+
+B3_SHARED_API int b3GetHMDData(b3SharedMemoryStatusHandle statusHandle, double* HMDData)
 {
-	PhysicsClient* cl = (PhysicsClient*)physClient;
-	return cl->getCachedHMDData();
+	const SharedMemoryStatus* status = (const SharedMemoryStatus*)statusHandle;
+	for (int i = 0; i < 7; i++)
+	{
+		HMDData[i] = status->m_sendVREvents.m_HMDEvent[i];
+	}
+	return 1;
 }
 
 B3_SHARED_API void b3SetVRCameraPositionOffset(b3SharedMemoryCommandHandle commandHandle, const double pos_offset[3])

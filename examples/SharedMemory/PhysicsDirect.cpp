@@ -709,6 +709,8 @@ void PhysicsDirect::postProcessStatus(const struct SharedMemoryStatus& serverCmd
 				m_data->m_cachedVREvents[i] = serverCmd.m_sendVREvents.m_controllerEvents[i];
 			}
 			m_data->m_cachedHMDData = serverCmd.m_sendVREvents.m_HMDdis;
+			// m_data->m_cachedHMDData.clear();
+			// m_data->m_cachedHMDData.push_back(serverCmd.m_sendVREvents.m_HMDEvents[0]);
 			break;
 		}
 		case CMD_REQUEST_KEYBOARD_EVENTS_DATA_COMPLETED:
