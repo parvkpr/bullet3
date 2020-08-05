@@ -370,31 +370,15 @@ void VRPhysicsServerVisualizerFlagCallback(int flag, bool enable)
 		gEnableVRRendering = enable;
 	}
 
-	// if (flag == COV_ENABLE_SINGLE_STEP_RENDERING)
-	// {
-	// 	if (enable)
-	// 	{
-	// 		gEnableVRRendering = false;
-	// 		singleStepSimulation = true;
-	// 	}
-	// 	else
-	// 	{
-	// 		gEnableVRRendering = true;
-	// 		singleStepSimulation = false;
-	// 	}
-	// }
-
 	if (flag == COV_ENABLE_WIREFRAME)
 	{
 		if (enable)
 		{
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-			//gDebugDrawFlags |= btIDebugDraw::DBG_DrawWireframe;
 		}
 		else
 		{
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-			//gDebugDrawFlags &= ~btIDebugDraw::DBG_DrawWireframe;
 		}
 	}
 }
@@ -920,10 +904,10 @@ void CMainApplication::RenderFrame()
 	// for now as fast as possible
 	if (m_pHMD)
 	{
-		{
-			B3_PROFILE("DrawControllers");
-			DrawControllers();
-		}
+		// {
+		// 	B3_PROFILE("DrawControllers");
+		// 	DrawControllers();
+		// }
 		RenderStereoTargets();
 
 		if (!gDisableDesktopGL)

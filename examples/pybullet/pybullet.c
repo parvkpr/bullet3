@@ -6233,7 +6233,7 @@ static PyObject* pybullet_setOriginCameraPositionAndOrientation(PyObject* self, 
 		pylist = PyTuple_New(7);
 		for (i = 0; i < 7; i++)
 		{	
-			printf("HMD data control%f\n", HMDData[i]);
+			// printf("HMD data control%f\n", HMDData[i]);
 			PyTuple_SetItem(pylist, i,
 							PyFloat_FromDouble(HMDData[i]));
 		}

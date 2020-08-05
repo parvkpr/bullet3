@@ -5174,7 +5174,7 @@ B3_SHARED_API b3SharedMemoryCommandHandle b3RequestVREventsCommandInit(b3Physics
 
 B3_SHARED_API b3SharedMemoryCommandHandle b3RequestAndSetVREventsCommandInit(b3PhysicsClientHandle physClient)
 {
-	b3Printf("b3RequestAndSetVREventsCommand\n");
+	// b3Printf("b3RequestAndSetVREventsCommand\n");
 	PhysicsClient* cl = (PhysicsClient*)physClient;
 	b3Assert(cl);
 	b3Assert(cl->canSubmitCommand());

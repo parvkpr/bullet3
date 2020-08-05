@@ -4,7 +4,8 @@ import difflib,sys
 
 numSteps = 500
 numSteps2 = 30
-p.connect(p.GUI, options="--width=1024 --height=768")
+# p.connect(p.GUI, options="--width=1024 --height=768")
+p.connect(p.SHARED_MEMORY) 
 numObjects = 50
 verbose = 0
 
@@ -78,7 +79,9 @@ file.close()
 setupWorld()
 
 #both restore from file or from in-memory state should work
-p.restoreState(fileName="state.bullet")
+# p.restoreState(fileName="state.bullet")
+ID = p.connect(p.DIRECT)                                                                                        
+p.restoreState(fileName="state.bullet", physicsClientId=ID)
 stateId = p.saveState()
 
 if verbose:
