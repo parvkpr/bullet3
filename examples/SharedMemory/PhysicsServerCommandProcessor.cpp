@@ -4497,12 +4497,14 @@ bool PhysicsServerCommandProcessor::processCreateCollisionShapeCommand(const str
 							}
 							compound->setMargin(m_data->m_defaultCollisionMargin);
 
+							// printf("FILE_OBJ shapes=%d\n", shapes.size());
 							for (int s = 0; s < (int)shapes.size(); s++)
 							{
 								btConvexHullShape* convexHull = worldImporter->createConvexHullShape();
 								convexHull->setMargin(m_data->m_defaultCollisionMargin);
 								tinyobj::shape_t& shape = shapes[s];
 								int faceCount = shape.mesh.indices.size();
+								// printf("faceCount=%d\n", faceCount);
 
 								for (int f = 0; f < faceCount; f += 3)
 								{
@@ -4525,7 +4527,8 @@ bool PhysicsServerCommandProcessor::processCreateCollisionShapeCommand(const str
 								}
 
 								convexHull->recalcLocalAabb();
-								convexHull->optimizeConvexHull();
+								// convexHull->optimizeConvexHull();
+								// printf("!!=%d\n", convexHull->getNumVertices());
 								compound->addChildShape(childTransform, convexHull);
 							}
 						}
@@ -4653,6 +4656,150 @@ bool PhysicsServerCommandProcessor::processCreateCollisionShapeCommand(const str
 	{
 		delete worldImporter;
 	}
+
+	return hasStatus;
+}
+
+static void gatherVertices(const btTransform& trans, const btCollisionShape* colShape, btAlignedObjectArray<btVector3>& verticesOut, int collisionShapeIndex)
+{
+	switch (colShape->getShapeType())
+	{
+		case COMPOUND_SHAPE_PROXYTYPE:
+		{
+			const btCompoundShape* compound = (const btCompoundShape*)colShape;
+			for (int i = 0; i < compound->getNumChildShapes(); i++)
+			{
+				btTransform childTr = trans * compound->getChildTransform(i);
+				if ((collisionShapeIndex < 0) || (collisionShapeIndex == i))
+				{
+					gatherVertices(childTr, compound->getChildShape(i), verticesOut, collisionShapeIndex);
+				}
+			}
+			break;
+		}
+		case CONVEX_HULL_SHAPE_PROXYTYPE:
+		{
+			const btConvexHullShape* convex = (const btConvexHullShape*)colShape;
+			btVector3 vtx;
+			for (int i = 0; i < convex->getNumVertices(); i++)
+			{
+				convex->getVertex(i, vtx);
+				btVector3 trVertex = trans * vtx;
+				verticesOut.push_back(trVertex);
+			}
+			break;
+		}
+		default:
+		{
+			printf("?\n");
+		}
+	}
+}
+
+bool PhysicsServerCommandProcessor::processRequestMeshDataCommand(const struct SharedMemoryCommand& clientCmd, struct SharedMemoryStatus& serverStatusOut, char* bufferServerToClient, int bufferSizeInBytes)
+{
+	bool hasStatus = true;
+	BT_PROFILE("CMD_REQUEST_MESH_DATA");
+	serverStatusOut.m_type = CMD_REQUEST_MESH_DATA_FAILED;
+	serverStatusOut.m_numDataStreamBytes = 0;
+	// 
+	int sizeInBytes = 0;
+	// 
+
+	InternalBodyHandle* bodyHandle = m_data->m_bodyHandles.getHandle(clientCmd.m_requestMeshDataArgs.m_bodyUniqueId);
+	
+
+	if (bodyHandle)
+	{
+		int totalBytesPerVertex = sizeof(btVector3);
+		btVector3* verticesOut = (btVector3*)bufferServerToClient;
+		const btCollisionShape* colShape = 0;
+
+		if (bodyHandle->m_multiBody)
+		{
+			//collision shape
+
+			if (clientCmd.m_requestMeshDataArgs.m_linkIndex == -1)
+			{
+				colShape = bodyHandle->m_multiBody->getBaseCollider()->getCollisionShape();
+			}
+			else
+			{
+				colShape = bodyHandle->m_multiBody->getLinkCollider(clientCmd.m_requestMeshDataArgs.m_linkIndex)->getCollisionShape();
+			}
+		}
+		if (bodyHandle->m_rigidBody)
+		{
+			colShape = bodyHandle->m_rigidBody->getCollisionShape();
+		}
+
+		if (colShape)
+		{
+			btAlignedObjectArray<btVector3> vertices;
+			btTransform tr;
+			tr.setIdentity();
+			int collisionShapeIndex = -1;
+			if (clientCmd.m_updateFlags & B3_MESH_DATA_COLLISIONSHAPEINDEX)
+			{
+				collisionShapeIndex = clientCmd.m_requestMeshDataArgs.m_collisionShapeIndex;
+			}
+			gatherVertices(tr, colShape, vertices, collisionShapeIndex);
+
+			int numVertices = vertices.size();
+			int maxNumVertices = bufferSizeInBytes / totalBytesPerVertex - 1;
+			int numVerticesRemaining = numVertices - clientCmd.m_requestMeshDataArgs.m_startingVertex;
+			int verticesCopied = btMin(maxNumVertices, numVerticesRemaining);
+
+			if (verticesCopied > 0)
+			{
+				memcpy(verticesOut, &vertices[0], sizeof(btVector3) * verticesCopied);
+			}
+
+			sizeInBytes = verticesCopied * sizeof(btVector3);
+			serverStatusOut.m_type = CMD_REQUEST_MESH_DATA_COMPLETED;
+			serverStatusOut.m_sendMeshDataArgs.m_numVerticesCopied = verticesCopied;
+			serverStatusOut.m_sendMeshDataArgs.m_startingVertex = clientCmd.m_requestMeshDataArgs.m_startingVertex;
+			serverStatusOut.m_sendMeshDataArgs.m_numVerticesRemaining = numVerticesRemaining - verticesCopied;
+		}
+
+#ifndef SKIP_SOFT_BODY_MULTI_BODY_DYNAMICS_WORLD
+
+		if (bodyHandle->m_softBody)
+		{
+		// 	btSoftBody* psb = bodyHandle->m_softBody;
+		// 	int totalBytesPerVertex = sizeof(btVector3);
+		// 	bool separateRenderMesh = (psb->m_renderNodes.size() != 0);
+		// 	int numVertices = separateRenderMesh ? psb->m_renderNodes.size() : psb->m_nodes.size();
+		// 	int maxNumVertices = bufferSizeInBytes / totalBytesPerVertex - 1;
+		// 	int numVerticesRemaining = numVertices - clientCmd.m_requestMeshDataArgs.m_startingVertex;
+		// 	int verticesCopied = btMin(maxNumVertices, numVerticesRemaining);
+		// 	btVector3* verticesOut = (btVector3*)bufferServerToClient;
+		// 	for (int i = 0; i < verticesCopied; ++i)
+		// 	{
+		// 		if (separateRenderMesh)
+		// 		{
+		// 			const btSoftBody::Node& n = psb->m_renderNodes[i + clientCmd.m_requestMeshDataArgs.m_startingVertex];
+		// 			verticesOut[i] = n.m_x;
+		// 		}
+		// 		else
+		// 		{
+		// 			const btSoftBody::Node& n = psb->m_nodes[i + clientCmd.m_requestMeshDataArgs.m_startingVertex];
+		// 			verticesOut[i] = n.m_x;
+		// 		}
+		// 	}
+		// 	// 
+		// 	sizeInBytes = verticesCopied * sizeof(btVector3);
+		// 	// 
+		// 	serverStatusOut.m_type = CMD_REQUEST_MESH_DATA_COMPLETED;
+		// 	serverStatusOut.m_sendMeshDataArgs.m_numVerticesCopied = verticesCopied;
+		// 	serverStatusOut.m_sendMeshDataArgs.m_startingVertex = clientCmd.m_requestMeshDataArgs.m_startingVertex;
+		// 	serverStatusOut.m_sendMeshDataArgs.m_numVerticesRemaining = numVerticesRemaining - verticesCopied;
+		}
+#endif  //SKIP_SOFT_BODY_MULTI_BODY_DYNAMICS_WORLD
+	}
+
+	// serverStatusOut.m_numDataStreamBytes = 0;
+	serverStatusOut.m_numDataStreamBytes = sizeInBytes;
 
 	return hasStatus;
 }
@@ -11530,7 +11677,11 @@ bool PhysicsServerCommandProcessor::processCommand(const struct SharedMemoryComm
 			hasStatus = processCreateVisualShapeCommand(clientCmd, serverStatusOut, bufferServerToClient, bufferSizeInBytes);
 			break;
 		}
-		
+		case CMD_REQUEST_MESH_DATA:
+		{
+			hasStatus = processRequestMeshDataCommand(clientCmd, serverStatusOut, bufferServerToClient, bufferSizeInBytes);
+			break;
+		}
 		case CMD_CREATE_MULTI_BODY:
 		{
 			hasStatus = processCreateMultiBodyCommand(clientCmd, serverStatusOut, bufferServerToClient, bufferSizeInBytes);
