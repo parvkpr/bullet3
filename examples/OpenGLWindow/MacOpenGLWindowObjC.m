@@ -1,4 +1,6 @@
 #ifndef B3_USE_GLFW
+#define __OBJC2__ 1
+#include <Foundation/NSExtensionContext.h>
 
 #include "MacOpenGLWindowObjC.h"
 
